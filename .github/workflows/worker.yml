@@ -23,4 +23,6 @@ jobs:
         env:
           PAYLOAD: ${{ toJSON(github.event.client_payload) }}
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          MY_TELEGRAM_TOKEN: ${{ secrets.MY_TELEGRAM_TOKEN }} 
         run: python worker.py
+
