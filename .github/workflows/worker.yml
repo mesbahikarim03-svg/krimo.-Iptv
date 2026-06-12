@@ -1,0 +1,26 @@
+name: IPTV Heavy Worker
+
+on:
+  repository_dispatch:
+    types: [run_bot_task]
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Packages
+        run: pip install python-telegram-bot requests aiohttp pyrogram tgcrypto
+
+      - name: Run Heavy Script
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: python worker.py
