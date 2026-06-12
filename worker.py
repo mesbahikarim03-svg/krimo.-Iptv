@@ -17,7 +17,7 @@ from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, InputMedia
 from telegram.error import BadRequest
 
 # ================== بياناتك السرية ==================
-TOKEN = "7070246714:AAEW0yicB7oT5sVsnyBNbVIavRxt3iyH-kU" 
+TOKEN = os.environ.get("MY_TELEGRAM_TOKEN")
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"
