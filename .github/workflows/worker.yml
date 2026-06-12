@@ -19,10 +19,12 @@ jobs:
       - name: Install Packages
         run: pip install python-telegram-bot requests aiohttp pyrogram tgcrypto
 
-      - name: Run Heavy Script
+            - name: Run Heavy Script
         env:
           PAYLOAD: ${{ toJSON(github.event.client_payload) }}
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          MY_TELEGRAM_TOKEN: ${{ secrets.MY_TELEGRAM_TOKEN }} 
+          MY_TELEGRAM_TOKEN: ${{ secrets.MY_TELEGRAM_TOKEN }}
+          MY_SESSION_STRING: ${{ secrets.MY_SESSION_STRING }}
         run: python worker.py
+
 
