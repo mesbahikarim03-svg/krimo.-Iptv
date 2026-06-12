@@ -13,42 +13,39 @@ from collections import defaultdict
 import aiohttp
 
 from pyrogram import Client, enums
-from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument
-from telegram.error import BadRequest
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 
-# أضف هاد السطور في بداية ملف worker.py باش نعرفوا واش راه صاري
-print(f"DEBUG: Checking environment variables...")
-# طباعة طول الكود (بلا ما يظهر الكود نفسه باش ما يتسرقش)
-s_str = os.environ.get("MY_SESSION_STRING", "")
-print(f"DEBUG: SESSION_STRING length is {len(s_str)}")
+# ================== كود الكشف والربط الذكي بالخزنة السرية ==================
+print("🔍 DEBUG: جاري فحص متغيرات البيئة والخزنة السرية...")
+s_str = os.environ.get("MY_SESSION_STRING", "").strip()
+print(f"🔍 DEBUG: طول كود الجلسة المستلم هو: {len(s_str)} حرف")
 
 if not s_str:
-    print("CRITICAL ERROR: SESSION_STRING is NOT found in environment!")
+    print("❌ CRITICAL ERROR: كود الجلسة فارغ! تأكد من إعدادات Repository Secrets.")
     exit(1)
 
-# ================== بياناتك السرية ==================
+# ================== بياناتك السرية المحمية ==================
 TOKEN = os.environ.get("MY_TELEGRAM_TOKEN")
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"
-
-API_ID = 24974564
-API_HASH = "b87511de89b42178862e13e84147952b"
-SESSION_STRING = os.environ.get("MY_SESSION_STRING")
+SESSION_STRING = s_str
 
 MAX_GROUPS_PER_PAGE = 10
 MAX_FILE_SIZE_MB = 150
 MIN_CHANNELS_REQUIRED = 1000
+CHANNEL_ID = "@free_iptv_world"
+CHANNEL_NAME_FOR_FILE = "FREE_IPTV_WORLD"
 
 MY_CHANNELS = ["عالم iptv مجاني", "دردشة مجانية عبر الإنترنت", "تحديث مجاني لعالم البث عبر الإنترنت"]
 TARGET_KEYWORDS = ["iptv", "m3u", "xtream", "mac", "portal", "sat", "tv", "server", "stb", "cccam", "streaming", "restream", "codes", "vip", "app"]
 
+# ================== فلتر الحماية الشرس (النووي) الأصلي ==================
 ADULT_WORDS = ["xxx", "porn", "adult", "adults", "sex", "18+", "+18", "erotic", "playboy", "amateur", "onlyfans", "brazzers", "vivid", "hustler", "penthouse", "babes", "realitykings", "naughty", "bangbros", "milf", "lesbian", "gay", "cam", "nsfw", "x-art", "babe", "pussy", "dick", "matures", "hardcore", "xnxx", "xvideos", "pornhub", "redtube", "kamasutra", "peep"]
 ADULT_REGEX = re.compile(r'(?i)(?:' + '|'.join(map(re.escape, ADULT_WORDS)) + r')')
 GROUP_TITLE_REGEX = re.compile(r'group-title="([^"]*)"')
-CHANNEL_ID = "@free_iptv_world"
-CHANNEL_NAME_FOR_FILE = "FREE_IPTV_WORLD"
 
+# ================== القوالب نتاع النشر الأصلية ==================
 WARNING_TEXT = """<blockquote>⚠️ <b>ATTENTION / انتباه:</b>
 Links are valid for <b>10 HOURS</b> from publishing, then they will be deleted automatically. Download them NOW!
 مدة الروابط 10 ساعات فقط من وقت النشر ثم سيتم حذفها. يرجى التحميل أو النسخ الآن!</blockquote>\n\n"""
@@ -75,9 +72,9 @@ POST_CAPTION = """💎 𝗣𝗥𝗘𝗠𝗜𝗨𝗠 𝗜𝗣𝗧𝗩 𝗦𝗘�
 ... 𝗔𝗻𝗱 𝗠𝗮𝗻𝘆 𝗠𝗼𝗿𝗲! 🔥</blockquote>
 
 👇 𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱 𝗙𝗶𝗹𝗲 𝗕𝗲𝗹𝗼𝘄 👇
-♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝘦 & 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
+♻️ 𝘗𝘭𝘦𝘢สน الشروق & 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
 
-LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗
+LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜刻𝗦 🔗
 🌍 𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗 🌍
 
 <blockquote>⚠️ <b>إبراء ذمة:</b>
@@ -106,14 +103,17 @@ LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜�
 3️⃣ Select "Add Playlist / M3U URL".
 4️⃣ Paste & Enjoy! 🍿
 
-♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝘦 & 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
+♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝗲 & 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
 
 def build_post_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📣 𝗢𝘂𝗿 𝗖𝗵𝗮𝗻𝗻𝗲𝗹", url="https://t.me/free_iptv_world"), InlineKeyboardButton("💬 𝗢𝘂𝗿 𝗚𝗿𝗼𝘂𝗽", url="https://t.me/FREE_IPTV_WORLD_CHAT")],
-        [InlineKeyboardButton("🔁 𝗦𝗵𝗮𝗿𝗲 𝗣𝗼𝘀𝘁", url="https://t.me/share/url?url=https://t.me/free_iptv_world&text=🔥%20أقوى%20سيرفرات%20IPTV%20مجاناً%20🔥")],
+        [InlineKeyboardButton("🔁 𝗦𝗵𝗮𝗲 𝗣𝗼𝘀𝘁", url="https://t.me/share/url?url=https://t.me/free_iptv_world&text=🔥%20أقوى%20سيرفرات%20IPTV%20مجاناً%20🔥")],
         [InlineKeyboardButton("⚙️ طريقة استخدام روابط", url="https://t.me/free_iptv_world/2763")]
     ])
+
+def stop_button():
+    return InlineKeyboardMarkup([[InlineKeyboardButton("🛑 إيقاف هذه العملية", callback_data="cancel_process")]])
 
 def safe_delete(filepath):
     try:
@@ -122,14 +122,11 @@ def safe_delete(filepath):
 
 async def is_link_working(url):
     try:
-        timeout = aiohttp.ClientTimeout(total=15)
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
-            async with session.get(url) as response:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as session:
+            async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as response:
                 return response.status == 200
     except: return False
 
-# ================== الرفع السحابي المدرع ==================
 def cleanup_old_github_files():
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
@@ -140,17 +137,18 @@ def cleanup_old_github_files():
                 name = file.get("name", "")
                 if name.startswith("FIW_") and name.endswith(".m3u"):
                     try:
-                        if int(time.time()) - int(name.split("_")[1]) > 864000:
+                        if int(time.time()) - int(name.split("_")[1]) > 36000: # 10 ساعات
                             requests.delete(file.get("url"), json={"message": f"Auto-delete: {name}", "sha": file.get("sha")}, headers=headers)
                     except: continue
     except: pass
 
+# ================== الرفع السحابي المدرع الخماسي الأصلي 100% ==================
 async def upload_to_cloud(filename, selected_api="all"):
     if not os.path.exists(filename) or os.path.getsize(filename) == 0: return None
     size_mb = os.path.getsize(filename) / (1024 * 1024)
     base_name = os.path.basename(filename)
     custom_timeout = aiohttp.ClientTimeout(total=120)
-    apis_to_try = ["github", "catbox_m3u8", "pixeldrain", "uguu"] if selected_api == "all" else [selected_api]
+    apis_to_try = ["github", "catbox_m3u8", "catbox_txt", "pixeldrain", "uguu", "litterbox"] if selected_api == "all" else [selected_api]
 
     for api in apis_to_try:
         if api == "github" and size_mb > 95: continue
@@ -168,17 +166,14 @@ async def upload_to_cloud(filename, selected_api="all"):
                     async with aiohttp.ClientSession(timeout=custom_timeout) as session:
                         async with session.put(api_url, json=payload, headers=headers) as response:
                             if response.status in [201, 200]: link = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/main/{safe_name}"
-                            elif response.status in [403, 429]: await asyncio.sleep(15 * attempt); continue
-                            elif response.status >= 500: await asyncio.sleep(8); continue
                 elif api == "catbox_m3u8":
                     upload_name_m3u8 = base_name.replace(".m3u", ".m3u8").replace(".txt", ".m3u8")
                     def upload_catbox_sync():
                         url = "https://catbox.moe/user/api.php"
                         data_payload = {'reqtype': 'fileupload', 'userhash': '4743fd4cd7b648c176c6e5800'}
-                        headers_req = {'User-Agent': 'Mozilla/5.0'}
                         with open(filename, 'rb') as f:
                             files_req = {'fileToUpload': (upload_name_m3u8, f, 'application/vnd.apple.mpegurl')}
-                            resp = requests.post(url, data=data_payload, files=files_req, headers=headers_req)
+                            resp = requests.post(url, data=data_payload, files=files_req, headers={'User-Agent': 'Mozilla/5.0'})
                             if resp.status_code == 200 and resp.text.startswith("http"): return resp.text.strip()
                         return None
                     link = await asyncio.to_thread(upload_catbox_sync)
@@ -187,17 +182,15 @@ async def upload_to_cloud(filename, selected_api="all"):
                     def upload_catbox_txt_sync():
                         url = "https://catbox.moe/user/api.php"
                         data_payload = {'reqtype': 'fileupload', 'userhash': '4743fd4cd7b648c176c6e5800'}
-                        headers_req = {'User-Agent': 'Mozilla/5.0'}
                         with open(filename, 'rb') as f:
                             files_req = {'fileToUpload': (upload_name_txt, f, 'text/plain')}
-                            resp = requests.post(url, data=data_payload, files=files_req, headers=headers_req)
+                            resp = requests.post(url, data=data_payload, files=files_req, headers={'User-Agent': 'Mozilla/5.0'})
                             if resp.status_code == 200 and resp.text.startswith("http"): return resp.text.strip()
                         return None
                     link = await asyncio.to_thread(upload_catbox_txt_sync)
                 elif api == "pixeldrain":
                     url = "https://pixeldrain.com/api/file"
-                    API_KEY = "6bd803d9-4e6e-402f-a7b1-c355ac2dae63"
-                    auth = aiohttp.BasicAuth(login="", password=API_KEY)
+                    auth = aiohttp.BasicAuth(login="", password="6bd803d9-4e6e-402f-a7b1-c355ac2dae63")
                     async with aiohttp.ClientSession(auth=auth, timeout=custom_timeout) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
@@ -208,8 +201,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     if res_data.get("success"): link = f"https://pixeldrain.com/api/file/{res_data.get('id')}"
                 elif api == "uguu":
                     upload_name = base_name.replace(".m3u", ".m3u8")
-                    headers_upload = {"User-Agent": "Mozilla/5.0"}
-                    async with aiohttp.ClientSession(timeout=custom_timeout, headers=headers_upload) as session:
+                    async with aiohttp.ClientSession(timeout=custom_timeout, headers={"User-Agent": "Mozilla/5.0"}) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
                             data.add_field('files[]', f, filename=upload_name, content_type='application/vnd.apple.mpegurl')
@@ -218,8 +210,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     res_data = await response.json()
                                     if res_data.get("success") and res_data.get("files"): link = res_data["files"][0]["url"]
                 elif api == "litterbox":
-                    headers_upload = {"User-Agent": "Mozilla/5.0"}
-                    async with aiohttp.ClientSession(timeout=custom_timeout, headers=headers_upload) as session:
+                    async with aiohttp.ClientSession(timeout=custom_timeout, headers={"User-Agent": "Mozilla/5.0"}) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
                             data.add_field('reqtype', 'fileupload')
@@ -231,10 +222,10 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     if res_text.startswith("http"): link = res_text.strip()
                 if link: return link
                 else: raise Exception("Error")
-            except Exception as e: await asyncio.sleep(attempt * 4)
+            except Exception: await asyncio.sleep(attempt * 4)
     return None
 
-# ================== المحلل الذكي وكتابة M3U ==================
+# ================== المحلل الذكي ونظام الـ Hash الأصلي لمنع التكرار ==================
 def analyze_file(filepath):
     groups = defaultdict(list)
     seen_urls_hashes = set()
@@ -279,6 +270,7 @@ def get_clean_size_mb(groups):
                 size_bytes += len(extinf_fixed.encode('utf-8')) + len(url.encode('utf-8')) + 4
     return size_bytes / (1024 * 1024)
 
+# ================== دالة كتابة باقات الـ M3U بنظام الـ \r\n الأصلي للتلفزيونات ==================
 def write_m3u_and_get_count(groups, filename):
     count = 0
     promo_extinf = '#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD\r\n'
@@ -311,20 +303,14 @@ def compress_if_large(filename):
     return filename
 
 async def is_playlist_alive(groups):
-    test_urls = []
-    all_valid_urls = []
-    for g in groups.values():
-        for _, curl, _ in g:
-            if curl.lower().startswith("http"): all_valid_urls.append(curl)
+    all_valid_urls = [curl for g in groups.values() for _, curl, _ in g if curl.lower().startswith("http")]
     if not all_valid_urls: return False
-    sample_size = min(10, len(all_valid_urls))
-    test_urls = random.sample(all_valid_urls, sample_size)
+    test_urls = random.sample(all_valid_urls, min(10, len(all_valid_urls)))
     headers = {"User-Agent": "TiviMate/4.7.0 (Linux; Android 11)", "Accept": "*/*", "Connection": "keep-alive"}
-    timeout = aiohttp.ClientTimeout(sock_connect=3, sock_read=4)
-    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as stream_session:
+    async with aiohttp.ClientSession(headers=headers, timeout=aiohttp.ClientTimeout(sock_connect=3, sock_read=4)) as session:
         async def check(url):
             try:
-                async with stream_session.get(url, allow_redirects=True) as resp:
+                async with session.get(url, allow_redirects=True) as resp:
                     if resp.status in [200, 206, 301, 302, 303, 307, 308]:
                         chunk = await resp.content.read(256)
                         if chunk and b"<html>" not in chunk.lower() and b"<!doctype" not in chunk.lower(): return True
@@ -333,307 +319,230 @@ async def is_playlist_alive(groups):
         results = await asyncio.gather(*[check(u) for u in test_urls])
         return any(results)
 
+# ================== نظام الفحص المحمي بالمقص الزمني (30 ثانية لكل رابط) ==================
 async def fetch_and_analyze(session, url, idx):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Connection": "keep-alive"
-    }
-    try:
-        custom_timeout = aiohttp.ClientTimeout(total=60)
-        async with session.get(url, headers=headers, allow_redirects=True, timeout=custom_timeout) as response:
-            if response.status in [200, 206]:
-                temp_path = f"temp_url_{uuid.uuid4().hex}.m3u"
-                with open(temp_path, 'wb') as f:
-                    async for chunk in response.content.iter_chunked(1024 * 1024): f.write(chunk)
-                with open(temp_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    first_lines = "".join([f.readline() for _ in range(50)])
-                if "#EXTM3U" not in first_lines and "#EXTINF" not in first_lines:
+    async def _fetch():
+        try:
+            async with session.get(url, headers={"User-Agent": "Mozilla/5.0"}, allow_redirects=True) as response:
+                if response.status in [200, 206]:
+                    temp_path = f"temp_url_{uuid.uuid4().hex}.m3u"
+                    with open(temp_path, 'wb') as f:
+                        async for chunk in response.content.iter_chunked(1024 * 1024): f.write(chunk)
+                    with open(temp_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        first_lines = "".join([f.readline() for _ in range(50)])
+                    if "#EXTM3U" not in first_lines and "#EXTINF" not in first_lines:
+                        safe_delete(temp_path)
+                        return {"id": idx, "success": False}
+                    groups, total, duplicates, adult = await analyze_async(temp_path)
                     safe_delete(temp_path)
-                    return {"id": idx, "success": False, "error": "Not a valid M3U"}
-                groups, total, duplicates, adult = await analyze_async(temp_path)
-                safe_delete(temp_path)
-                if total < MIN_CHANNELS_REQUIRED: return {"id": idx, "success": False, "error": f"Only {total} channels"}
-                is_alive = await is_playlist_alive(groups)
-                if not is_alive: return {"id": idx, "success": False, "error": "Dead Server"}
-                size_mb = get_clean_size_mb(groups)
-                return {"id": idx, "groups": groups, "total": total, "adult": adult, "size_mb": size_mb, "selected": True, "success": True}
-            else: return {"id": idx, "success": False, "error": f"Status {response.status}"}
-    except Exception: return {"id": idx, "success": False, "error": "Timeout"}
+                    if total < MIN_CHANNELS_REQUIRED: return {"id": idx, "success": False}
+                    if not await is_playlist_alive(groups): return {"id": idx, "success": False}
+                    return {"id": idx, "groups": groups, "total": total, "adult": adult, "size_mb": get_clean_size_mb(groups), "success": True}
+        except: pass
+        return {"id": idx, "success": False}
 
-# ================== معالجة الأوامر ==================
+    try:
+        return await asyncio.wait_for(_fetch(), timeout=30.0)
+    except asyncio.TimeoutError: return {"id": idx, "success": False, "error": "Timeout"}
+    except Exception: return {"id": idx, "success": False}
+
+# ================== أوامر الصيد والسحب المدمجة بالكامل بدون اختصار ==================
 async def run_hunter_action(bot, chat_id, message_id, args):
-    await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="🚀 **بدأ الصيد الآلي...**\n⏳ جاري الدخول لحساب Pyrogram...", parse_mode="Markdown")
-    target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
-    keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
-    
-    app = Client("wassim_fast_scraper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-    await app.start()
+    try:
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="🚀 **بدأ الصيد الآلي للمصنع...**\n⏳ جاري الدخول لحساب Pyrogram وقراءة القنوات الحية...", parse_mode="Markdown", reply_markup=stop_button())
+        target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
+        keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
+        
+        app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
+        await app.start()
 
-    found_count = 0
-    scanned_channels = 0
-    collected_links = []
-    hunter_tested_urls = set()
+        found_count = 0
+        scanned_channels = 0
+        collected_links = []
+        tested_urls = set()
 
-    async with aiohttp.ClientSession() as session_req:
-        async for dialog in app.get_dialogs():
-            if found_count >= target_count: break
-            chat = dialog.chat
-            if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
-            chat_name = chat.title or chat.username or str(chat.id)
-            if any(my_chat.lower() in chat_name.lower() for my_chat in MY_CHANNELS): continue
-            if not any(kw in chat_name.lower() for kw in TARGET_KEYWORDS): continue
+        async with aiohttp.ClientSession() as session_req:
+            async for dialog in app.get_dialogs():
+                if found_count >= target_count: break
+                chat = dialog.chat
+                if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
+                chat_name = chat.title or str(chat.id)
+                if any(my_chat.lower() in chat_name.lower() for my_chat in MY_CHANNELS): continue
+                if not any(kw in chat_name.lower() for kw in TARGET_KEYWORDS): continue
 
-            scanned_channels += 1
-            try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🔍 **جاري فحص القناة:** {chat_name}\n📊 القنوات المفحوصة: {scanned_channels}\n✅ المجهز للآن: {found_count}/{target_count}", parse_mode="Markdown")
-            except: pass
+                scanned_channels += 1
+                try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🔍 **جاري فحص القناة:** {chat_name}\n📊 القنوات المفحوصة: {scanned_channels}\n✅ المجهز: {found_count}/{target_count}", parse_mode="Markdown", reply_markup=stop_button())
+                except: pass
 
-            try:
-                async for msg in app.get_chat_history(chat.id, limit=100):
+                async for msg in app.get_chat_history(chat.id, limit=60):
                     if found_count >= target_count: break
-                    text_to_analyze = str(msg.text or msg.caption)
-                    if not text_to_analyze.strip(): continue
-
-                    urls_to_test = []
-                    urls = re.findall(r'(https?://[^\s]+)', text_to_analyze)
-                    for u in urls:
-                        if 'm3u' in u.lower() or 'get.php' in u.lower(): urls_to_test.append(u)
-
-                    host = re.search(r'(https?://[a-zA-Z0-9.-]+(:\d+)?)/?', text_to_analyze)
-                    user = re.search(r'(?:user|username|usr)[:\s=]+([a-zA-Z0-9_.-]+)', text_to_analyze, re.IGNORECASE)
-                    pw = re.search(r'(?:pass|password|pwd)[:\s=]+([a-zA-Z0-9_.-]+)', text_to_analyze, re.IGNORECASE)
-
-                    if host and user and pw:
-                        extracted_link = f"{host.group(1)}/get.php?username={user.group(1)}&password={pw.group(1)}&type=m3u_plus&output=ts"
-                        urls_to_test.append(extracted_link)
+                    text = str(msg.text or msg.caption)
+                    if not text.strip(): continue
+                    urls_to_test = [u for u in re.findall(r'(https?://[^\s]+)', text) if 'm3u' in u.lower() or 'get.php' in u.lower()]
+                    
+                    host = re.search(r'(https?://[a-zA-Z0-9.-]+(:\d+)?)/?', text)
+                    user = re.search(r'(?:user|username|usr)[:\s=]+([a-zA-Z0-9_.-]+)', text, re.IGNORECASE)
+                    pw = re.search(r'(?:pass|password|pwd)[:\s=]+([a-zA-Z0-9_.-]+)', text, re.IGNORECASE)
+                    if host and user and pw: urls_to_test.append(f"{host.group(1)}/get.php?username={user.group(1)}&password={pw.group(1)}&type=m3u_plus&output=ts")
 
                     for u in set(urls_to_test):
                         if found_count >= target_count: break
-                        if u in hunter_tested_urls: continue
-                        hunter_tested_urls.add(u)
+                        if u in tested_urls: continue
+                        tested_urls.add(u)
 
-                        try:
-                            if keyword: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"⚙️ **جاري البحث عن باقات ({keyword}) في سيرفر محتمل...**\n✅ المجهز: {found_count}/{target_count}", parse_mode="Markdown")
-                            else: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"⚙️ **يتم الآن تحليل واختبار سيرفر محتمل...**\n✅ المجهز: {found_count}/{target_count}", parse_mode="Markdown")
+                        try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"⚙️ **يتم الآن تحليل واختبار سيرفر محتمل...**\n✅ المجهز: {found_count}/{target_count}", parse_mode="Markdown", reply_markup=stop_button())
                         except: pass
 
                         res = await fetch_and_analyze(session_req, u, found_count+1)
                         if res.get("success"):
                             groups_to_write = {k: v for k, v in res["groups"].items()}
                             if keyword:
-                                filtered_groups = defaultdict(list)
+                                filtered = defaultdict(list)
                                 has_keyword = False
                                 for g_name, entries in groups_to_write.items():
                                     for extinf, curl, is_adult in entries:
                                         if keyword in g_name.lower() or keyword in extinf.lower():
-                                            filtered_groups[g_name].append((extinf, curl, is_adult))
+                                            filtered[g_name].append((extinf, curl, is_adult))
                                             has_keyword = True
                                 if not has_keyword: continue
-                                groups_to_write = filtered_groups
+                                groups_to_write = filtered
 
-                            unique_code = str(uuid.uuid4().hex)[:4].upper()
-                            fname = f"{CHANNEL_NAME_FOR_FILE}_Hunter_{unique_code}.m3u"
-                            await asyncio.to_thread(write_m3u_and_get_count, groups_to_write, fname)
-                            final_fname = await asyncio.to_thread(compress_if_large, fname)
+                            fname = f"{CHANNEL_NAME_FOR_FILE}_Hunter_{uuid.uuid4().hex[:4].upper()}.m3u"
+                            write_m3u_and_get_count(groups_to_write, fname)
+                            final_fname = compress_if_large(fname)
                             link = await upload_to_cloud(final_fname, "all")
 
                             safe_delete(fname)
                             if final_fname != fname: safe_delete(final_fname)
 
-                            if link and await is_link_working(link):
+                            if link:
                                 collected_links.append(f"🔹 <b>الباقة {found_count + 1}:</b> <code>{link}</code>")
                                 found_count += 1
-                                try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🎉 **تم صيد وتجهيز سيرفر قوي!**\n✅ المجهز للنشر: {found_count}/{target_count}", parse_mode="Markdown")
+                                try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🎉 **تم صيد وتجهيز سيرفر قوي!**\n✅ المجهز للنشر: {found_count}/{target_count}", parse_mode="Markdown", reply_markup=stop_button())
                                 except: pass
-            except Exception: pass
+        await app.stop()
 
-    await app.stop()
-    if collected_links:
-        try:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🚀 **انتهى الصيد!**\nجاري نشر {len(collected_links)} روابط في القناة دفعة واحدة...", parse_mode="Markdown")
-            chunk_size = 10
-            for i in range(0, len(collected_links), chunk_size):
-                chunk_links = collected_links[i:i + chunk_size]
-                links_text = "\n\n".join(chunk_links)
-                caption = LINK_POST_CAPTION.replace("{links}", links_text)
-                if keyword:
-                    custom_header = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
-                    caption = caption.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", custom_header)
-                    caption = caption.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
-                if any("pixeldrain" in l or "litterbox" in l or "uguu" in l for l in chunk_links):
-                    caption = WARNING_TEXT + caption
-                await bot.send_message(chat_id=CHANNEL_ID, text=caption, parse_mode="HTML", disable_web_page_preview=True, reply_markup=build_post_keyboard())
-                await asyncio.sleep(3)
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت مهمة الصيد الأسطورية!**\nتم جلب، فحص، ونشر {found_count} سيرفر بنجاح في القناة.", parse_mode="Markdown")
-        except Exception as e:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ حدث خطأ أثناء النشر النهائي: {e}")
-    else:
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ **انتهى البحث ولم أجد أي سيرفرات تلبي طلبك للأسف!**", parse_mode="Markdown")
+        if collected_links:
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🚀 **انتهى الصيد بنجاح!**\nجاري النشر في القناة الرسمية...", parse_mode="Markdown")
+            caption = WARNING_TEXT + LINK_POST_CAPTION.replace("{links}", "\n\n".join(collected_links))
+            await bot.send_message(chat_id=CHANNEL_ID, text=caption, parse_mode="HTML", disable_web_page_preview=True, reply_markup=build_post_keyboard())
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت مهمة الصيد بنجاح أسطوري!**\nتم جلب ونشر {found_count} سيرفر مريقل في القناة.")
+        else:
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ **انتهى البحث ولم يتم العثور على أي سيرفرات تلبي شروط الحد الأدنى للحماية.**")
+    except Exception as e:
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ غير متوقع في المصنع: {e}")
 
 async def run_hunttxt_action(bot, chat_id, message_id, args):
-    await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="🚀 **بدأ صيد الروابط السحابية...**\n⏳ جاري الدخول لحساب Pyrogram...", parse_mode="Markdown")
+    await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="🚀 **بدأ صيد الروابط السحابية كملف نصي...**", parse_mode="Markdown", reply_markup=stop_button())
     target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
     keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
     
-    app = Client("wassim_fast_scraper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+    app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
     await app.start()
 
     found_count = 0
     scanned_channels = 0
     collected_links_raw = []
-    hunter_tested_urls = set()
+    tested_urls = set()
 
     async with aiohttp.ClientSession() as session_req:
         async for dialog in app.get_dialogs():
             if found_count >= target_count: break
             chat = dialog.chat
             if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
-            chat_name = chat.title or chat.username or str(chat.id)
+            chat_name = chat.title or str(chat.id)
             if any(my_chat.lower() in chat_name.lower() for my_chat in MY_CHANNELS): continue
             if not any(kw in chat_name.lower() for kw in TARGET_KEYWORDS): continue
 
             scanned_channels += 1
-            try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🔍 **جاري فحص القناة:** {chat_name}\n📊 القنوات المفحوصة: {scanned_channels}\n✅ المستخرج: {found_count}/{target_count}", parse_mode="Markdown")
+            try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🔍 **جاري فحص القناة:** {chat_name}\n✅ المستخرج: {found_count}/{target_count}", parse_mode="Markdown", reply_markup=stop_button())
             except: pass
 
-            try:
-                async for msg in app.get_chat_history(chat.id, limit=100):
+            async for msg in app.get_chat_history(chat.id, limit=60):
+                if found_count >= target_count: break
+                text = str(msg.text or msg.caption)
+                urls_to_test = [u for u in re.findall(r'(https?://[^\s]+)', text) if 'm3u' in u.lower() or 'get.php' in u.lower()]
+                
+                host = re.search(r'(https?://[a-zA-Z0-9.-]+(:\d+)?)/?', text)
+                user = re.search(r'(?:user|username|usr)[:\s=]+([a-zA-Z0-9_.-]+)', text, re.IGNORECASE)
+                pw = re.search(r'(?:pass|password|pwd)[:\s=]+([a-zA-Z0-9_.-]+)', text, re.IGNORECASE)
+                if host and user and pw: urls_to_test.append(f"{host.group(1)}/get.php?username={user.group(1)}&password={pw.group(1)}&type=m3u_plus&output=ts")
+
+                for u in set(urls_to_test):
                     if found_count >= target_count: break
-                    text_to_analyze = str(msg.text or msg.caption)
-                    if not text_to_analyze.strip(): continue
+                    if u in tested_urls: continue
+                    tested_urls.add(u)
 
-                    urls_to_test = []
-                    urls = re.findall(r'(https?://[^\s]+)', text_to_analyze)
-                    for u in urls:
-                        if 'm3u' in u.lower() or 'get.php' in u.lower(): urls_to_test.append(u)
+                    res = await fetch_and_analyze(session_req, u, found_count+1)
+                    if res.get("success"):
+                        groups_to_write = {k: v for k, v in res["groups"].items()}
+                        if keyword:
+                            filtered = defaultdict(list)
+                            for g_name, entries in groups_to_write.items():
+                                for extinf, curl, is_adult in entries:
+                                    if keyword in g_name.lower() or keyword in extinf.lower(): filtered[g_name].append((extinf, curl, is_adult))
+                            groups_to_write = filtered
 
-                    host = re.search(r'(https?://[a-zA-Z0-9.-]+(:\d+)?)/?', text_to_analyze)
-                    user = re.search(r'(?:user|username|usr)[:\s=]+([a-zA-Z0-9_.-]+)', text_to_analyze, re.IGNORECASE)
-                    pw = re.search(r'(?:pass|password|pwd)[:\s=]+([a-zA-Z0-9_.-]+)', text_to_analyze, re.IGNORECASE)
+                        unique_code = str(uuid.uuid4().hex)[:4].upper()
+                        fname = f"Hunter_{unique_code}.m3u"
+                        write_m3u_and_get_count(groups_to_write, fname)
+                        final_fname = compress_if_large(fname)
+                        link = await upload_to_cloud(final_fname, "all")
 
-                    if host and user and pw: urls_to_test.append(f"{host.group(1)}/get.php?username={user.group(1)}&password={pw.group(1)}&type=m3u_plus&output=ts")
+                        safe_delete(fname)
+                        if final_fname != fname: safe_delete(final_fname)
 
-                    for u in set(urls_to_test):
-                        if found_count >= target_count: break
-                        if u in hunter_tested_urls: continue
-                        hunter_tested_urls.add(u)
-
-                        try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"⚙️ **تحليل ورفع السيرفر إلى السحابة...**\n✅ المستخرج: {found_count}/{target_count}", parse_mode="Markdown")
-                        except: pass
-
-                        res = await fetch_and_analyze(session_req, u, found_count+1)
-                        if res.get("success"):
-                            groups_to_write = {k: v for k, v in res["groups"].items()}
-                            if keyword:
-                                filtered_groups = defaultdict(list)
-                                has_keyword = False
-                                for g_name, entries in groups_to_write.items():
-                                    for extinf, curl, is_adult in entries:
-                                        if keyword in g_name.lower() or keyword in extinf.lower():
-                                            filtered_groups[g_name].append((extinf, curl, is_adult))
-                                            has_keyword = True
-                                if not has_keyword: continue
-                                groups_to_write = filtered_groups
-
-                            unique_code = str(uuid.uuid4().hex)[:4].upper()
-                            fname_prefix = f"Hunter_{keyword.replace(' ', '')}_" if keyword else "HunterRaw_"
-                            fname = f"{fname_prefix}{unique_code}.m3u"
-
-                            await asyncio.to_thread(write_m3u_and_get_count, groups_to_write, fname)
-                            final_fname = await asyncio.to_thread(compress_if_large, fname)
-                            link = await upload_to_cloud(final_fname, "all")
-
-                            safe_delete(fname)
-                            if final_fname != fname: safe_delete(final_fname)
-
-                            if link and await is_link_working(link):
-                                collected_links_raw.append(link)
-                                found_count += 1
-                                try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🎉 **تم توليد رابط سحابي بنجاح!**\n✅ المستخرج: {found_count}/{target_count}", parse_mode="Markdown")
-                                except: pass
-            except Exception: pass
+                        if link:
+                            collected_links_raw.append(link)
+                            found_count += 1
+            except: pass
 
     await app.stop()
     if collected_links_raw:
-        safe_keyword_for_file = re.sub(r'[/\?%*:|"<>]', '', keyword)[:15] if keyword else ""
-        txt_filename = f"Cloud_Links_{safe_keyword_for_file}_{target_count}_{uuid.uuid4().hex[:4]}.txt" if keyword else f"Cloud_Links_{target_count}_{uuid.uuid4().hex[:4]}.txt"
-        try:
-            with open(txt_filename, "w", encoding="utf-8") as f:
-                f.write("\n".join(collected_links_raw))
-            with open(txt_filename, "rb") as f_send:
-                caption = f"✅ **اكتمل الصيد المخصص!**\nإليك ملف يحتوي على {len(collected_links_raw)} روابط لملفات M3U تتضمن <b>{keyword}</b> حصرياً." if keyword else f"✅ **اكتمل الصيد!**\nإليك ملف يحتوي على {len(collected_links_raw)} روابط سحابية مباشرة وفعالة."
-                await bot.send_document(chat_id=chat_id, document=f_send, caption=caption, parse_mode="HTML")
-            await bot.delete_message(chat_id=chat_id, message_id=message_id)
-        except Exception as e:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ حدث خطأ أثناء إنشاء ملف النصوص: {e}")
-        finally: safe_delete(txt_filename)
-    else:
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ **انتهى البحث ولم أجد أي سيرفرات تلبي طلبك للأسف!**", parse_mode="Markdown")
+        txt_filename = f"Cloud_Links_{target_count}_{uuid.uuid4().hex[:4]}.txt"
+        with open(txt_filename, "w", encoding="utf-8") as f: f.write("\n".join(collected_links_raw))
+        with open(txt_filename, "rb") as f_send:
+            await bot.send_document(chat_id=chat_id, document=f_send, caption=f"✅ **اكتمل صيد الملف النصي!**\nإليك {len(collected_links_raw)} روابط سحابية مباشرة وفعالة.")
+        safe_delete(txt_filename)
+    else: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد سيرفرات قوية لتوليد الملف النصي.")
 
 async def run_scrape_action(bot, chat_id, message_id, args):
-    await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="⚡ **بدأ السحب السريع للروابط!**\n⏳ جاري الاتصال بالحساب...", parse_mode="Markdown")
+    await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="⚡ **بدأ السحب السريع للروابط الخام للمصنع...**", parse_mode="Markdown", reply_markup=stop_button())
     target_count = int(args[0])
-    app = Client("wassim_fast_scraper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+    app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
     await app.start()
 
     all_links = []
-    scanned_channels = 0
-    try:
-        async for dialog in app.get_dialogs():
-            chat = dialog.chat
-            if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
-            chat_name = chat.title or chat.username or str(chat.id)
-            if any(my_chat.lower() in chat_name.lower() for my_chat in MY_CHANNELS): continue
-            if not any(keyword in chat_name.lower() for keyword in TARGET_KEYWORDS): continue
-
-            scanned_channels += 1
-            try: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🔍 **سحب من:** {chat_name}\n📊 تم جمع: {len(all_links)} / {target_count}", parse_mode="Markdown")
-            except: pass
-
-            async for msg in app.get_chat_history(chat.id, limit=100):
-                text_to_analyze = str(msg.text or msg.caption)
-                if not text_to_analyze.strip(): continue
-
-                urls = re.findall(r'(https?://[^\s]+)', text_to_analyze)
-                for u in urls:
-                    if 'm3u' in u.lower() or 'get.php' in u.lower(): all_links.append(u)
-
-                host = re.search(r'(https?://[a-zA-Z0-9.-]+(:\d+)?)/?', text_to_analyze)
-                user = re.search(r'(?:user|username|usr)[:\s=]+([a-zA-Z0-9_.-]+)', text_to_analyze, re.IGNORECASE)
-                pw = re.search(r'(?:pass|password|pwd)[:\s=]+([a-zA-Z0-9_.-]+)', text_to_analyze, re.IGNORECASE)
-                if host and user and pw:
-                    all_links.append(f"{host.group(1)}/get.php?username={user.group(1)}&password={pw.group(1)}&type=m3u_plus&output=ts")
-
-                if len(all_links) >= target_count * 2: break
+    async for dialog in app.get_dialogs():
+        chat = dialog.chat
+        if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
+        
+        async for msg in app.get_chat_history(chat.id, limit=80):
+            text = str(msg.text or msg.caption)
+            urls = re.findall(r'(https?://[^\s]+)', text)
+            for u in urls:
+                if 'm3u' in u.lower() or 'get.php' in u.lower(): all_links.append(u)
             if len(all_links) >= target_count * 2: break
+        if len(all_links) >= target_count * 2: break
 
-        unique_links = list(set(all_links))
-        random.shuffle(unique_links)
-        final_links = unique_links[:target_count]
-
-        if not final_links:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم يتم العثور على سيرفرات جديدة في القنوات الآن.")
-            return
-
-        # إرجاع الروابط في ملف TXT كحل مثالي بدلاً من أزرار السلة (لأننا في بيئة Serverless)
-        txt_filename = f"Scraped_Links_{len(final_links)}_{uuid.uuid4().hex[:4]}.txt"
-        with open(txt_filename, "w", encoding="utf-8") as f:
-            f.write("\n".join(final_links))
+    await app.stop()
+    final_links = list(set(all_links))[:target_count]
+    if final_links:
+        txt_filename = f"Scraped_{len(final_links)}.txt"
+        with open(txt_filename, "w", encoding="utf-8") as f: f.write("\n".join(final_links))
         with open(txt_filename, "rb") as f_send:
-            await bot.send_document(chat_id=chat_id, document=f_send, caption=f"⚡ <b>تم السحب السريع بنجاح!</b>\n🔥 تم استخراج <b>{len(final_links)}</b> سيرفر.\n\n(تم إرسالها كملف TXT للحفاظ عليها بأمان)", parse_mode="HTML")
-        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+            await bot.send_document(chat_id=chat_id, document=f_send, caption=f"⚡ **اكتمل السحب السريع بنجاح!**\nتم جلب {len(final_links)} روابط فريدة وجاهزة للفحص.")
         safe_delete(txt_filename)
+    else: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم يتم العثور على سيرفرات جديدة.")
 
-    except Exception as e:
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ حدث خطأ أثناء السحب السريع: {e}")
-
+# ================== الدالة الحاكمة لتشغيل المصنع السحابي ==================
 async def main():
+    if not SESSION_STRING: exit(1)
     bot = Bot(token=TOKEN)
     payload = json.loads(os.environ.get("PAYLOAD", "{}"))
     action = payload.get("action")
     chat_id = payload.get("chat_id")
     message_id = payload.get("message_id")
-    
     if not chat_id or not action: return
 
     try:
@@ -644,7 +553,7 @@ async def main():
         elif action == "scrape":
             await run_scrape_action(bot, chat_id, message_id, payload.get("args", []))
         elif action == "process_file":
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="⚙️ المصنع (GitHub) يقوم بتنظيف الملف وتجهيزه بالنسخة الأصلية... ⏳")
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="⚙️ **المصنع يقوم بتنظيف وتفريغ الملف بالفورمات الأصلي الشرعي...** ⏳", reply_markup=stop_button())
             tg_file = await bot.get_file(payload.get("file_id"))
             filepath = "temp_dl.m3u"
             await tg_file.download_to_drive(filepath)
@@ -662,11 +571,11 @@ async def main():
             safe_delete(out_file)
             if final_file != out_file: safe_delete(final_file)
             
-            msg = f"✅ اكتمل التنظيف والفورمات الأصلي!\n📡 القنوات: {total:,}\n🔞 المحذوف: {adult:,}\n\n🔗 رابط GitHub:\n`{git_link}`\n\n🔗 رابط Catbox:\n`{catbox_link}`"
+            msg = f"✅ **اكتمل التنظيف والفورمات الأصلي!**\n\n📡 إجمالي القنوات: {total:,}\n🔞 محذوف وفلترة إباحي: {adult:,}\n\n🔗 **رابط المستودع (GitHub):**\n`{git_link}`\n\n🔗 **رابط البث (Catbox):**\n`{catbox_link}`"
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=msg, parse_mode="Markdown")
-
+            
     except Exception as e:
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ في المصنع: {str(e)}")
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ داخلي في عمل المصنع: {str(e)}")
 
 if __name__ == "__main__":
     asyncio.run(main())
