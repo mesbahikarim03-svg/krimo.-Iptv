@@ -16,6 +16,16 @@ from pyrogram import Client, enums
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaDocument
 from telegram.error import BadRequest
 
+# أضف هاد السطور في بداية ملف worker.py باش نعرفوا واش راه صاري
+print(f"DEBUG: Checking environment variables...")
+# طباعة طول الكود (بلا ما يظهر الكود نفسه باش ما يتسرقش)
+s_str = os.environ.get("MY_SESSION_STRING", "")
+print(f"DEBUG: SESSION_STRING length is {len(s_str)}")
+
+if not s_str:
+    print("CRITICAL ERROR: SESSION_STRING is NOT found in environment!")
+    exit(1)
+
 # ================== بياناتك السرية ==================
 TOKEN = os.environ.get("MY_TELEGRAM_TOKEN")
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
