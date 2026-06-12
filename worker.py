@@ -12,7 +12,7 @@ from telegram import Bot
 from pyrogram import Client, enums
 
 # ================== الإعدادات والبيانات ==================
-TOKEN = "7070246714:AAGWty5XcMLmi0LH2kXUN4OoN9vMnV5kKec"
+TOKEN = "7070246714:AAEW0yicB7oT5sVsnyBNbVIavRxt3iyH-kU"
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"  # المستودع الجديد نتاعك
