@@ -1,0 +1,31 @@
+﻿#EXTM3U
+#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD
+https://files.catbox.moe/npglfu.mp4
+#EXTINF:-1 timeshift="1" tvg-id="eurosport" tvg-name="EuroSport 1 HD" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Sport",EuroSport 1 HD | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/23681.ts
+#EXTINF:-1 timeshift="1" tvg-id="eurosport2" tvg-name="EuroSport 2 HD" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Sport",EuroSport 2 HD | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/8617.ts
+#EXTINF:-1 tvg-id="" tvg-name="DK: EuroSport 1" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Danska",DK: EuroSport 1 | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/9039.ts
+#EXTINF:-1 tvg-id="" tvg-name="DK: EuroSport 2" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Danska",DK: EuroSport 2 | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/9040.ts
+#EXTINF:-1 tvg-id="" tvg-name="NL: Eurosport 1 HD NL" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Holandija",NL: Eurosport 1 HD NL | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/9985.ts
+#EXTINF:-1 tvg-id="" tvg-name="NL: EuroSport 2 NL" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Holandija",NL: EuroSport 2 NL | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/9986.ts
+#EXTINF:-1 tvg-id="" tvg-name="GR: Eurosport 1" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Grcka",GR: Eurosport 1 | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/10139.ts
+#EXTINF:-1 tvg-id="" tvg-name="GR: Eurosport 2" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Grcka",GR: Eurosport 2 | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/10138.ts
+#EXTINF:-1 tvg-id="" tvg-name="NO: Eurosport 1 FHD" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Norveska",NO: Eurosport 1 FHD | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/10209.ts
+#EXTINF:-1 tvg-id="" tvg-name="SE: EuroSport 2 HD" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Svedska",SE: EuroSport 2 HD | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/10274.ts
+#EXTINF:-1 tvg-id="" tvg-name="HU: EuroSport 1" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Madjarska",HU: EuroSport 1 | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/10330.ts
+#EXTINF:-1 tvg-id="" tvg-name="HU: EuroSport 2" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Madjarska",HU: EuroSport 2 | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/10331.ts
+#EXTINF:-1 tvg-id="" tvg-name="FR: EuroSport 1 F" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2015_logo.png" group-title="Francuska",FR: EuroSport 1 F | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/11106.ts
+#EXTINF:-1 tvg-id="" tvg-name="FR: EuroSport 2 F" tvg-logo="https://cdn-0.tvprofil.com/cdn/100x64/4/img/kanali-logo/Eurosport_2_2015_logo.png" group-title="Francuska",FR: EuroSport 2 F | 🌟 FREE IPTV WORLD 🌟
+http://bntvs.com:2052/dusanknezevic/43538386/11107.ts
