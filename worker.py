@@ -1,6 +1,4 @@
-# الكود الكامل الجاهز - ضعه مكان `worker.py`
 
-```python
 import os
 import json
 import asyncio
