@@ -1,3 +1,5 @@
+!pip install pyrogram tgcrypto nest_asyncio python-telegram-bot aiohttp requests -U
+
 import os
 import json
 import asyncio
@@ -284,14 +286,15 @@ async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, for
             edit_state["time"] = time.time()
         except: pass
 
-# ================== دالة توليد صور الذكاء الاصطناعي الفخمة ==================
+# ================== دالة توليد صور الذكاء الاصطناعي ==================
 def generate_ai_image_url(keyword):
     if keyword:
         prompt = f"Luxury Premium {keyword} sports tv broadcast, 4k resolution, cinematic lighting, neon dark background, iptv concept"
     else:
         prompt = "Luxury Premium Smart TV IPTV worldwide channels broadcast, 4k resolution, cinematic lighting, neon dark background"
     encoded_prompt = quote(prompt)
-    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
+    # إضافة .jpg في النهاية لإجبار تيليجرام على التعرف عليها كصورة وعرضها كمعاينة
+    return f"https://image.pollinations.ai/prompt/{encoded_prompt}.jpg?width=1024&height=1024&nologo=true"
 
 # ================== أوامر الصيد والسحب ==================
 async def run_hunter_action(bot, chat_id, message_id, args):
@@ -364,20 +367,20 @@ async def run_hunter_action(bot, chat_id, message_id, args):
             remaining_links = collected_links[5:]
             ai_image_url = generate_ai_image_url(keyword)
             
-            # --- حل مشكلة تجاوز الكابشن 1024 حرف بالخدعة المخفية ---
+            # تجهيز الدفعة الأولى بالقالب كاملاً
             caption_1 = LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(first_batch))
             if keyword: caption_1 = caption_1.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
             if any("pixeldrain" in l or "litterbox" in l or "uguu" in l for l in first_batch):
                 caption_1 = WARNING_TEXT + caption_1
                 
-            # إدراج رابط الصورة كحرف مخفي لتفعيل المعاينة (يسمح لك بكتابة حتى 4096 حرف بلا ما يتبلوكا)
-            hidden_image_link = f'<a href="{ai_image_url}">&#8205;</a>'
+            # إدراج الصورة كرابط مخفي في رسالة نصية ليتم عرضها كمعاينة بدون التأثير على طول الكابشن
+            hidden_image_link = f'<a href="{ai_image_url}">&#8203;</a>'
             full_text_1 = hidden_image_link + caption_1
             
-            await bot.send_message(chat_id=CHANNEL_ID, text=full_text_1, parse_mode="HTML", reply_markup=build_post_keyboard())
+            await bot.send_message(chat_id=CHANNEL_ID, text=full_text_1, parse_mode="HTML", disable_web_page_preview=False, reply_markup=build_post_keyboard())
             await asyncio.sleep(3)
             
-            # --- نشر باقي الدفعات (كل 10 روابط) ---
+            # نشر باقي الدفعات في رسائل نصية بدون معاينة (كل 10 روابط)
             if remaining_links:
                 chunk_size = 10
                 for i in range(0, len(remaining_links), chunk_size):
