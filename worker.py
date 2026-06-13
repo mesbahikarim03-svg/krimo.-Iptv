@@ -77,7 +77,7 @@ LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜�
 3️⃣ Select "Add Playlist / M3U URL".
 4️⃣ Paste & Enjoy! 🍿
 
-♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝗲 & 𝘚𝘶𝘱𝘱𝘰𝗿𝘁 𝘜𝘴!"""
+♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝗲 & 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
 
 def build_post_keyboard():
     return InlineKeyboardMarkup([
@@ -319,7 +319,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                     
                     urls_to_test = set()
                     try:
-                        async for msg in app.get_chat_history(chat.id, limit=50):
+                        async for msg in app.get_chat_history(chat.id, limit=150):
                             text = str(msg.text or msg.caption)
                             urls = re.findall(r'(https?://[^\s]+)', text)
                             for u in urls:
@@ -357,27 +357,27 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         if collected_links:
             await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة بتقسيم الصور والروابط...", edit_state, None, force=True)
             
-            # 1. تحديد عنوان الباقة المخصصة
             if keyword: cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
             else: cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
             
-            # 2. تقسيم الروابط (5 في البوست الأول، و 10 في الباقي)
             first_batch = collected_links[:5]
             remaining_links = collected_links[5:]
-            
-            # 3. جلب الصورة بالذكاء الاصطناعي
             ai_image_url = generate_ai_image_url(keyword)
             
-            # --- نشر الدفعة الأولى (5 روابط + صورة) ---
+            # --- حل مشكلة تجاوز الكابشن 1024 حرف بالخدعة المخفية ---
             caption_1 = LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(first_batch))
             if keyword: caption_1 = caption_1.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
             if any("pixeldrain" in l or "litterbox" in l or "uguu" in l for l in first_batch):
                 caption_1 = WARNING_TEXT + caption_1
                 
-            await bot.send_photo(chat_id=CHANNEL_ID, photo=ai_image_url, caption=caption_1, parse_mode="HTML", reply_markup=build_post_keyboard())
+            # إدراج رابط الصورة كحرف مخفي لتفعيل المعاينة (يسمح لك بكتابة حتى 4096 حرف بلا ما يتبلوكا)
+            hidden_image_link = f'<a href="{ai_image_url}">&#8205;</a>'
+            full_text_1 = hidden_image_link + caption_1
+            
+            await bot.send_message(chat_id=CHANNEL_ID, text=full_text_1, parse_mode="HTML", reply_markup=build_post_keyboard())
             await asyncio.sleep(3)
             
-            # --- نشر باقي الدفعات (كل 10 روابط في رسالة منفصلة بدون صورة لتفادي الحظر) ---
+            # --- نشر باقي الدفعات (كل 10 روابط) ---
             if remaining_links:
                 chunk_size = 10
                 for i in range(0, len(remaining_links), chunk_size):
