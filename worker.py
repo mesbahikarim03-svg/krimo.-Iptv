@@ -10,6 +10,7 @@ import zipfile
 import random
 from datetime import datetime
 from collections import defaultdict
+from io import BytesIO
 import aiohttp
 
 from pyrogram import Client, enums
@@ -27,6 +28,9 @@ if not s_str:
 # ================== بياناتك السرية المحمية المسترجعة ==================
 TOKEN = os.environ.get("MY_TELEGRAM_TOKEN")
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
+# استخدم هذا المتغير لربط Hugging Face وتوليد صور خارقة (FLUX.1 أو SDXL)
+HF_TOKEN = os.environ.get("HF_TOKEN", "").strip() 
+
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"
 SESSION_STRING = s_str
@@ -35,26 +39,6 @@ MAX_FILE_SIZE_MB = 150
 MIN_CHANNELS_REQUIRED = 1000
 CHANNEL_ID = "@free_iptv_world"
 CHANNEL_NAME_FOR_FILE = "FREE_IPTV_WORLD"
-
-# ================== إعدادات السرعة القصوى والتحليل ==================
-# يمكن تعديل هذه القيم من Secrets/Variables بدون تغيير الكود.
-FAST_SCAN_HISTORY_LIMIT = int(os.environ.get("FAST_SCAN_HISTORY_LIMIT", "80"))
-FAST_MAX_PARALLEL_ANALYZE = int(os.environ.get("FAST_MAX_PARALLEL_ANALYZE", "18"))
-FAST_FETCH_TIMEOUT = float(os.environ.get("FAST_FETCH_TIMEOUT", "14"))
-FAST_LINK_CONNECT_TIMEOUT = float(os.environ.get("FAST_LINK_CONNECT_TIMEOUT", "2.5"))
-FAST_LINK_READ_TIMEOUT = float(os.environ.get("FAST_LINK_READ_TIMEOUT", "3.5"))
-FAST_ALIVE_SAMPLE_SIZE = int(os.environ.get("FAST_ALIVE_SAMPLE_SIZE", "4"))
-FAST_EDIT_INTERVAL = float(os.environ.get("FAST_EDIT_INTERVAL", "2.0"))
-FAST_MAX_DOWNLOAD_MB = int(os.environ.get("FAST_MAX_DOWNLOAD_MB", "220"))
-FAST_UPLOAD_PARALLEL = os.environ.get("FAST_UPLOAD_PARALLEL", "1") == "1"
-
-# ================== مزودات توليد صور AI احترافية بدون Pollinations.ai ==================
-# الأولوية: OpenAI ثم Stability AI ثم Replicate. إذا لم يوجد مفتاح، ينشر البوت النص فقط ولا يتوقف.
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
-STABILITY_API_KEY = os.environ.get("STABILITY_API_KEY", "").strip()
-REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "").strip()
-AI_IMAGE_PROVIDER = os.environ.get("AI_IMAGE_PROVIDER", "auto").strip().lower()  # auto/openai/stability/replicate/off
-ENABLE_AI_POST_IMAGE = os.environ.get("ENABLE_AI_POST_IMAGE", "1") == "1"
 
 MY_CHANNELS = ["عالم iptv مجاني", "دردشة مجانية عبر الإنترنت", "تحديث مجاني لعالم البث عبر الإنترنت"]
 TARGET_KEYWORDS = ["iptv", "m3u", "xtream", "mac", "portal", "sat", "tv", "server", "stb", "cccam", "streaming", "restream", "codes", "vip", "app"]
@@ -67,13 +51,13 @@ WARNING_TEXT = """<blockquote>⚠️ <b>ATTENTION / انتباه:</b>
 Links are valid for <b>10 HOURS</b> from publishing, then they will be deleted automatically. Download them NOW!
 مدة الروابط 10 ساعات فقط من وقت النشر ثم سيتم حذفها. يرجى التحميل أو النسخ الآن!</blockquote>\n\n"""
 
-LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜政𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗
+LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗
 🌍 𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗 🌍
 
 <blockquote>⚠️ <b>إبراء ذمة:</b>
 نبرأ إلى الله من أي استخدام سيء أو الدخول لقنوات غير لائقة. 🤲</blockquote>
 
-🚀 𝗛𝗶𝗴𝗵-𝗦𝗽𝗲𝗲dw 𝗟𝗶𝗻𝗸ｓ:
+🚀 𝗛𝗶𝗴𝗵-𝗦𝗽𝗲𝗲𝗱 𝗟𝗶𝗻𝗸𝘀:
 {links}
 
 <blockquote>📊 𝗦𝗲𝗿𝘃𝗲𝗿 𝗗𝗲𝘁𝗮𝗶𝗹𝘀:
@@ -98,25 +82,6 @@ LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜政𝗧𝗩 𝗟𝗜�
 
 ♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝗲 & 𝘚υ𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
 
-SIMPLE_PRO_POST_TEMPLATE = """<blockquote>
-🚀 <b>FREE IPTV WORLD</b>
-✅ باقة IPTV احترافية مفلترة وجاهزة للتشغيل
-📦 عدد الباقات المنشورة: <b>{count}</b>
-🎯 النوع: <b>{package_title}</b>
-⏳ الصلاحية المتوقعة: <b>10 ساعات من وقت النشر</b>
-🛡️ تم تنظيف المحتوى وفحصه تلقائياً
-</blockquote>"""
-
-AI_POST_IMAGE_PROMPT = """
-Create a premium professional social media poster for a Telegram IPTV channel called FREE IPTV WORLD.
-Theme: modern streaming, global TV, sports, movies, clean digital dashboard, blue and purple neon gradients, glossy professional advertising look.
-Include visual hints of live TV, playlist, shield safety, globe, and fast servers.
-Package information: {package_title}, number of packages: {count}, validity: 10 hours.
-Use Arabic-friendly clean layout. No clickable URLs, no links, no QR codes, no adult content, no logos of copyrighted platforms, no real broadcaster logos.
-Text to show exactly: FREE IPTV WORLD, PREMIUM IPTV PACKAGE, {package_title}, {count} PACKAGES, VALID 10 HOURS.
-High quality, sharp, professional, 16:9 composition.
-"""
-
 def build_post_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📣 𝗢𝘂𝗿 𝗖𝗵𝗮𝗻𝗻𝗲𝗹", url="https://t.me/free_iptv_world"), InlineKeyboardButton("💬 𝗢𝘂𝗿 𝗚𝗿𝗼𝘂𝗽", url="https://t.me/FREE_IPTV_WORLD_CHAT")],
@@ -133,121 +98,10 @@ def safe_delete(filepath):
 
 async def is_link_working(url):
     try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=FAST_FETCH_TIMEOUT)) as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
             async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as response:
                 return response.status == 200
     except: return False
-
-async def _download_binary_to_file(url, filepath, headers=None, timeout=90):
-    try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
-            async with session.get(url, headers=headers or {}) as resp:
-                if resp.status == 200:
-                    with open(filepath, "wb") as f:
-                        async for chunk in resp.content.iter_chunked(1024 * 256):
-                            f.write(chunk)
-                    return os.path.exists(filepath) and os.path.getsize(filepath) > 0
-    except Exception as e:
-        print(f"⚠️ AI image download failed: {e}")
-    return False
-
-async def generate_ai_post_image(package_title, count):
-    """توليد صورة احترافية للمنشور بدون Pollinations.ai.
-    يعمل اختيارياً: إذا لم تتوفر مفاتيح API يرجع None ويستمر البوت بالنشر النصي.
-    المزودات المدعومة الأكثر ضماناً: OpenAI Images, Stability AI, Replicate/Flux.
-    """
-    if not ENABLE_AI_POST_IMAGE or AI_IMAGE_PROVIDER == "off":
-        return None
-
-    prompt = AI_POST_IMAGE_PROMPT.format(package_title=package_title, count=count).strip()
-    out_file = f"ai_post_{uuid.uuid4().hex[:8]}.png"
-    providers = []
-    if AI_IMAGE_PROVIDER in ["auto", "openai"] and OPENAI_API_KEY:
-        providers.append("openai")
-    if AI_IMAGE_PROVIDER in ["auto", "stability"] and STABILITY_API_KEY:
-        providers.append("stability")
-    if AI_IMAGE_PROVIDER in ["auto", "replicate"] and REPLICATE_API_TOKEN:
-        providers.append("replicate")
-
-    for provider in providers:
-        try:
-            if provider == "openai":
-                headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-                payload = {"model": "gpt-image-1", "prompt": prompt, "size": "1536x1024", "quality": "high", "n": 1}
-                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
-                    async with session.post("https://api.openai.com/v1/images/generations", headers=headers, json=payload) as resp:
-                        data = await resp.json(content_type=None)
-                        if resp.status in [200, 201] and data.get("data"):
-                            item = data["data"][0]
-                            if item.get("b64_json"):
-                                with open(out_file, "wb") as f:
-                                    f.write(base64.b64decode(item["b64_json"]))
-                                return out_file if os.path.exists(out_file) else None
-                            if item.get("url") and await _download_binary_to_file(item["url"], out_file):
-                                return out_file
-
-            elif provider == "stability":
-                headers = {"Authorization": f"Bearer {STABILITY_API_KEY}", "Accept": "image/*"}
-                data = aiohttp.FormData()
-                data.add_field("prompt", prompt)
-                data.add_field("output_format", "png")
-                data.add_field("aspect_ratio", "16:9")
-                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
-                    async with session.post("https://api.stability.ai/v2beta/stable-image/generate/core", headers=headers, data=data) as resp:
-                        if resp.status in [200, 201]:
-                            content = await resp.read()
-                            if content:
-                                with open(out_file, "wb") as f:
-                                    f.write(content)
-                                return out_file if os.path.exists(out_file) else None
-
-            elif provider == "replicate":
-                headers = {"Authorization": f"Token {REPLICATE_API_TOKEN}", "Content-Type": "application/json"}
-                payload = {
-                    "version": "black-forest-labs/flux-schnell",
-                    "input": {"prompt": prompt, "aspect_ratio": "16:9", "output_format": "png", "num_outputs": 1}
-                }
-                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=180)) as session:
-                    async with session.post("https://api.replicate.com/v1/predictions", headers=headers, json=payload) as resp:
-                        pred = await resp.json(content_type=None)
-                    get_url = pred.get("urls", {}).get("get")
-                    if get_url:
-                        for _ in range(30):
-                            await asyncio.sleep(2)
-                            async with session.get(get_url, headers=headers) as poll:
-                                pdata = await poll.json(content_type=None)
-                            if pdata.get("status") == "succeeded":
-                                output = pdata.get("output")
-                                image_url = output[0] if isinstance(output, list) else output
-                                if image_url and await _download_binary_to_file(image_url, out_file):
-                                    return out_file
-                            if pdata.get("status") in ["failed", "canceled"]:
-                                break
-        except Exception as e:
-            print(f"⚠️ AI image provider {provider} failed: {e}")
-            safe_delete(out_file)
-            continue
-    return None
-
-def build_simple_pro_post(package_title, count):
-    title = package_title or "DIRECT IPTV LINKS"
-    return SIMPLE_PRO_POST_TEMPLATE.format(package_title=title, count=count)
-
-async def publish_channel_post(bot, caption, package_title, count):
-    """ينشر الصورة والقالب البسيط أولاً بدون روابط، ثم القالب الأصلي بالروابط كما هو."""
-    simple_caption = build_simple_pro_post(package_title, count)
-    image_path = await generate_ai_post_image(package_title, count)
-    try:
-        if image_path:
-            with open(image_path, "rb") as photo:
-                await bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=simple_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
-        else:
-            await bot.send_message(chat_id=CHANNEL_ID, text=simple_caption, parse_mode="HTML", disable_web_page_preview=True, reply_markup=build_post_keyboard())
-    finally:
-        if image_path:
-            safe_delete(image_path)
-
-    await bot.send_message(chat_id=CHANNEL_ID, text=caption, parse_mode="HTML", disable_web_page_preview=True, reply_markup=build_post_keyboard())
 
 def cleanup_old_github_files():
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/"
@@ -326,32 +180,41 @@ async def upload_to_cloud(filename, selected_api="all"):
             except Exception: await asyncio.sleep(attempt * 2)
     return None
 
+# ================== دالة تحليل الملفات بسرعة فائقة ==================
 def analyze_file(filepath):
     groups = defaultdict(list)
     seen_urls_hashes = set()
     total, adult = 0, 0
-    current_extinf = ""
+    current_extinf_lines = []
+    
     with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#EXTM3U"): continue
-            if line.startswith("#EXTINF"): current_extinf = line
+            
+            if line.startswith("#EXTINF"): 
+                current_extinf_lines = [line]
             elif line.startswith("#"):
-                if current_extinf: current_extinf += "\n" + line
+                if current_extinf_lines: current_extinf_lines.append(line)
             else:
-                if current_extinf:
+                if current_extinf_lines:
                     url = line
                     total += 1
+                    # دمج الأسطر بسرعة بدلا من السلسلة المتكررة
+                    current_extinf = "\n".join(current_extinf_lines)
                     match = GROUP_TITLE_REGEX.search(current_extinf)
                     group = match.group(1) if match else "Unknown"
+                    
                     is_adult = bool(ADULT_REGEX.search(current_extinf)) or bool(ADULT_REGEX.search(url)) or bool(ADULT_REGEX.search(group))
-                    if is_adult: adult += 1
+                    if is_adult: 
+                        adult += 1
                     else:
                         url_hash = hash(url)
                         if url_hash not in seen_urls_hashes:
                             seen_urls_hashes.add(url_hash)
                             groups[group].append((current_extinf, url, False))
-                    current_extinf = ""
+                    current_extinf_lines = []
+                    
     clean_groups = defaultdict(list)
     for g_name, entries in groups.items():
         if not bool(ADULT_REGEX.search(g_name)): clean_groups[g_name] = entries
@@ -395,9 +258,9 @@ def compress_if_large(filename):
 async def is_playlist_alive(groups):
     all_valid_urls = [curl for g in groups.values() for _, curl, _ in g if curl.lower().startswith("http")]
     if not all_valid_urls: return False
-    test_urls = random.sample(all_valid_urls, min(FAST_ALIVE_SAMPLE_SIZE, len(all_valid_urls)))
+    test_urls = random.sample(all_valid_urls, min(6, len(all_valid_urls)))
     headers = {"User-Agent": "TiviMate/4.7.0 (Linux; Android 11)"}
-    async with aiohttp.ClientSession(headers=headers, timeout=aiohttp.ClientTimeout(sock_connect=FAST_LINK_CONNECT_TIMEOUT, sock_read=FAST_LINK_READ_TIMEOUT)) as session:
+    async with aiohttp.ClientSession(headers=headers, timeout=aiohttp.ClientTimeout(sock_connect=3, sock_read=4)) as session:
         async def check(url):
             try:
                 async with session.get(url, allow_redirects=True) as resp:
@@ -416,27 +279,54 @@ async def fetch_and_analyze(session, url, idx):
                 if response.status in [200, 206]:
                     temp = f"temp_{uuid.uuid4().hex}.m3u"
                     with open(temp, 'wb') as f:
-                        async for chunk in response.content.iter_chunked(1024*1024):
-                            f.write(chunk)
-                            if f.tell() > FAST_MAX_DOWNLOAD_MB * 1024 * 1024:
-                                raise ValueError("playlist too large")
+                        async for chunk in response.content.iter_chunked(1024*1024): f.write(chunk)
                     groups, total, adult = await analyze_async(temp)
                     safe_delete(temp)
                     if total < MIN_CHANNELS_REQUIRED or not await is_playlist_alive(groups): return {"id": idx, "success": False}
                     return {"id": idx, "groups": groups, "total": total, "size_mb": get_clean_size_mb(groups), "success": True}
         except: pass
         return {"id": idx, "success": False}
-    try: return await asyncio.wait_for(_fetch(), timeout=FAST_FETCH_TIMEOUT)
+    try: return await asyncio.wait_for(_fetch(), timeout=20.0)
     except: return {"id": idx, "success": False}
 
 async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, force=False):
-    if force or (time.time() - edit_state["time"] > FAST_EDIT_INTERVAL):
+    if force or (time.time() - edit_state["time"] > 3.0):
         try:
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text, parse_mode="Markdown", reply_markup=markup)
             edit_state["time"] = time.time()
         except: pass
 
-# 1. دالة الصيد التلقائي والموازي (مع عنوان الباقة المخصصة)
+# ================== دالة توليد الصور الخارقة ==================
+async def generate_pro_image(keyword):
+    """توليد صورة احترافية باستخدام HuggingFace إذا توفر التوكن، وإلا بديل قوي مجاني"""
+    prompt_subject = keyword if keyword else "Premium IPTV World"
+    prompt = f"Professional highly detailed 8k cinematic promotional poster for {prompt_subject} streaming, glowing neon text, sports and movies background, photorealistic, elegant dark interface style"
+    
+    # 1. الأولوية لمحرك Hugging Face القوي جدا (FLUX أو SD 3.5)
+    if HF_TOKEN:
+        url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, headers=headers, json={"inputs": prompt}) as resp:
+                    if resp.status == 200:
+                        return await resp.read()
+        except Exception as e: 
+            print(f"HF Image Gen Failed: {e}")
+
+    # 2. بديل مجاني قوي ومستقر بعيداً عن Pollinations الفاشل
+    fallback_url = "https://api.airforce/imagine2"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{fallback_url}?prompt={requests.utils.quote(prompt)}") as resp:
+                if resp.status == 200:
+                    return await resp.read()
+    except Exception as e:
+        print(f"Fallback Image Gen Failed: {e}")
+    
+    return None
+
+# ================== دالة الصيد التلقائي (Hunter Action) المحدثة ==================
 async def run_hunter_action(bot, chat_id, message_id, args):
     try:
         edit_state = {"time": 0}
@@ -462,7 +352,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                     
                     urls_to_test = set()
                     try:
-                        async for msg in app.get_chat_history(chat.id, limit=FAST_SCAN_HISTORY_LIMIT):
+                        async for msg in app.get_chat_history(chat.id, limit=50):
                             text = str(msg.text or msg.caption)
                             urls = re.findall(r'(https?://[^\s]+)', text)
                             for u in urls:
@@ -473,11 +363,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                     tested_urls.update(valid_urls)
 
                     if valid_urls:
-                        sem = asyncio.Semaphore(FAST_MAX_PARALLEL_ANALYZE)
-                        async def limited_fetch(u, i):
-                            async with sem:
-                                return await fetch_and_analyze(session_req, u, found_count+1+i)
-                        tasks = [limited_fetch(u, i) for i, u in enumerate(valid_urls)]
+                        tasks = [fetch_and_analyze(session_req, u, found_count+1+i) for i, u in enumerate(valid_urls)]
                         results = await asyncio.gather(*tasks)
                         for res in results:
                             if found_count >= target_count: break
@@ -502,15 +388,35 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         await app.stop()
 
         if collected_links:
-            # دمج ميزة عنوان الباقة المخصصة المريقلة
+            # 1. توليد عنوان واسم الباقة
             if keyword: cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
             else: cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
+
+            await safe_edit(bot, chat_id, message_id, "🎨 **جاري توليد الصورة الاحترافية للباقة...**", edit_state, stop_button(), force=True)
             
-            caption = WARNING_TEXT + LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(collected_links))
-            await publish_channel_post(bot, caption, cap_title, found_count)
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم نشر {found_count} سيرفر.")
-        else: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة.")
-    except Exception as e: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
+            # 2. توليد الصورة بالذكاء الاصطناعي
+            img_bytes = await generate_pro_image(keyword)
+            
+            # 3. إرسال الصورة بقالب بسيط احترافي (بدون روابط)
+            promo_caption = f"🌟 <b>{cap_title}</b> 🌟\n\n<blockquote>🚀 أقوى سيرفرات البث المباشر تم تجهيزها الآن.\n⚡ استمتع بمشاهدة بدون تقطيع لأقوى البطولات والأفلام.\n\n👇 <b>الروابط المباشرة في المنشور التالي</b> 👇</blockquote>"
+            
+            if img_bytes:
+                try:
+                    photo_io = BytesIO(img_bytes)
+                    photo_io.name = "promo_iptv.jpg"
+                    await bot.send_photo(chat_id=CHANNEL_ID, photo=photo_io, caption=promo_caption, parse_mode="HTML")
+                except Exception as e:
+                    print(f"Error posting photo: {e}")
+            
+            # 4. إرسال الروابط بالقالب الأصلي دون تغيير تحت الصورة مباشرة
+            links_caption = WARNING_TEXT + LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(collected_links))
+            await bot.send_message(chat_id=CHANNEL_ID, text=links_caption, parse_mode="HTML", disable_web_page_preview=True, reply_markup=build_post_keyboard())
+            
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم نشر الصورة و {found_count} سيرفرات في القناة.")
+        else: 
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة.")
+    except Exception as e: 
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
 
 # 2. دالة الصيد كملف نصي (hunttxt)
 async def run_hunttxt_action(bot, chat_id, message_id, args):
@@ -538,7 +444,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
                     
                     urls_to_test = set()
                     try:
-                        async for msg in app.get_chat_history(chat.id, limit=FAST_SCAN_HISTORY_LIMIT):
+                        async for msg in app.get_chat_history(chat.id, limit=50):
                             text = str(msg.text or msg.caption)
                             urls = re.findall(r'(https?://[^\s]+)', text)
                             for u in urls:
@@ -549,11 +455,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
                     tested_urls.update(valid_urls)
 
                     if valid_urls:
-                        sem = asyncio.Semaphore(FAST_MAX_PARALLEL_ANALYZE)
-                        async def limited_fetch(u, i):
-                            async with sem:
-                                return await fetch_and_analyze(session_req, u, found_count+1+i)
-                        tasks = [limited_fetch(u, i) for i, u in enumerate(valid_urls)]
+                        tasks = [fetch_and_analyze(session_req, u, found_count+1+i) for i, u in enumerate(valid_urls)]
                         results = await asyncio.gather(*tasks)
                         for res in results:
                             if found_count >= target_count: break
@@ -602,7 +504,7 @@ async def run_scrape_action(bot, chat_id, message_id, args):
             chat = dialog.chat
             if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
             try:
-                async for msg in app.get_chat_history(chat.id, limit=FAST_SCAN_HISTORY_LIMIT):
+                async for msg in app.get_chat_history(chat.id, limit=50):
                     text = str(msg.text or msg.caption)
                     urls = re.findall(r'(https?://[^\s]+)', text)
                     for u in urls:
@@ -653,14 +555,8 @@ async def main():
             write_m3u_and_get_count(groups, out_file)
             final_file = compress_if_large(out_file)
             
-            if FAST_UPLOAD_PARALLEL:
-                git_link, catbox_link = await asyncio.gather(
-                    upload_to_cloud(final_file, "github"),
-                    upload_to_cloud(final_file, "catbox_m3u8")
-                )
-            else:
-                git_link = await upload_to_cloud(final_file, "github")
-                catbox_link = await upload_to_cloud(final_file, "catbox_m3u8")
+            git_link = await upload_to_cloud(final_file, "github")
+            catbox_link = await upload_to_cloud(final_file, "catbox_m3u8")
             
             safe_delete(out_file)
             if final_file != out_file: safe_delete(final_file)
