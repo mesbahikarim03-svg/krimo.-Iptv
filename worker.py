@@ -289,23 +289,27 @@ async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, for
             edit_state["time"] = time.time()
         except: pass
 
-# ================== دالة تحميل صورة الذكاء الاصطناعي ==================
+# ================== دالة توليد وتحميل صور الذكاء الاصطناعي (الحل الجذري) ==================
 def download_ai_image(keyword):
     if keyword:
         prompt = f"Luxury Premium {keyword} sports tv broadcast, 4k resolution, cinematic lighting, neon dark background, iptv concept"
     else:
         prompt = "Luxury Premium Smart TV IPTV worldwide channels broadcast, 4k resolution, cinematic lighting, neon dark background"
+    
     encoded_prompt = quote(prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&seed={random.randint(1, 99999)}"
-    try:
-        resp = requests.get(url, timeout=30)
-        if resp.status_code == 200:
-            img_path = f"ai_cover_{uuid.uuid4().hex[:4]}.jpg"
-            with open(img_path, 'wb') as f:
-                f.write(resp.content)
-            return img_path
-    except Exception as e:
-        print(f"Error downloading AI image: {e}")
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&seed={random.randint(1, 999999)}"
+    img_path = f"ai_cover_{uuid.uuid4().hex[:4]}.jpg"
+    
+    # تحميل الصورة محلياً في GitHub لضمان عدم رفض تيليجرام لها
+    for attempt in range(2):
+        try:
+            resp = requests.get(url, timeout=40)
+            if resp.status_code == 200:
+                with open(img_path, 'wb') as f:
+                    f.write(resp.content)
+                return img_path
+        except Exception as e:
+            time.sleep(2)
     return None
 
 # ================== أوامر الصيد والسحب ==================
@@ -317,7 +321,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         
         await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد المباشر بالتوربو...**", edit_state, stop_button(), force=True)
         
-        app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
+        app = Client("wassim_fast_scraper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
         await app.start()
 
         found_count, scanned, collected_links, tested_urls = 0, 0, [], set()
@@ -370,15 +374,12 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         await app.stop()
 
         if collected_links:
-            await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة (توليد الصورة الفخمة أولاً)...", edit_state, None, force=True)
+            await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة (توليد وتحميل الصورة الفخمة أولاً)...", edit_state, None, force=True)
             
             if keyword: cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
             else: cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
             
-            first_batch = collected_links[:5]
-            remaining_links = collected_links[5:]
-            
-            # --- الخطوة 1: تحميل الصورة الفخمة وإرسالها كملف فعلي ---
+            # --- الخطوة 1: تحميل الصورة وإرسالها كمنشور مستقل بملف حقيقي ---
             img_path = await asyncio.to_thread(download_ai_image, keyword)
             simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
             
@@ -388,14 +389,19 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                         await bot.send_photo(chat_id=CHANNEL_ID, photo=f_img, caption=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
                     safe_delete(img_path)
                 else:
-                    # في حالة فشل الذكاء الاصطناعي يرسل الرسالة كنص فقط
                     await bot.send_message(chat_id=CHANNEL_ID, text=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
                 await asyncio.sleep(2)
-            except Exception as e:
-                print(f"Error sending image: {e}")
+            except Exception as e: 
+                print(f"Error sending photo: {e}")
             
-            # --- الخطوة 2: إرسال الدفعة الأولى (5) ثم باقي الدفعات (كل 10 روابط) في رسائل نصية عادية ---
-            all_chunks = [first_batch] + [remaining_links[i:i + 10] for i in range(0, len(remaining_links), 10)]
+            # --- الخطوة 2: إرسال الروابط مقسمة بقوالبك الأصلية الفخمة ---
+            first_batch = collected_links[:5]
+            remaining_links = collected_links[5:]
+            
+            all_chunks = [first_batch]
+            if remaining_links:
+                for i in range(0, len(remaining_links), 10):
+                    all_chunks.append(remaining_links[i:i+10])
             
             for chunk in all_chunks:
                 if not chunk: continue
