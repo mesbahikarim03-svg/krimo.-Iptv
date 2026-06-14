@@ -1,0 +1,9 @@
+﻿#EXTM3U
+#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD
+https://files.catbox.moe/npglfu.mp4
+#EXTINF:-1 group-title="Спортивные",Bein Sports | 🌟 FREE IPTV WORLD 🌟
+http://154.197.91.169:8000/play/a0f3/index.m3u8
+#EXTINF:-1 group-title="Спортивные",Bein Sports 6 | 🌟 FREE IPTV WORLD 🌟
+http://62.201.210.86:6969/bein6/index.m3u8
+#EXTINF:-1 group-title="Спортивные",Bein Sports Xtra | 🌟 FREE IPTV WORLD 🌟
+https://bein-esp-xumo.amagi.tv/playlistR1080p.m3u8
