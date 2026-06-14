@@ -105,7 +105,7 @@ async def is_link_working(url):
 
 def cleanup_old_github_files():
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept=application/vnd.github.v3+json"}
+    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"
     try:
         resp = requests.get(api_url, headers=headers)
         if resp.status_code == 200:
