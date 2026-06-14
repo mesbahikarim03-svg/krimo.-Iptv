@@ -1,5 +1,4 @@
 
-
 import os
 import json
 import asyncio
@@ -144,7 +143,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                 elif api == "catbox_m3u8":
                     def up_cat():
                         with open(filename, 'rb') as f:
-                            resp = requests.post("https://catbox.moe/user/api.php", data={'reqtype': 'fileupload', 'userhash': '4743fd4cd7b648c176c6e5800'}, files={'fileToUpload': (base_name, f, 'application/vnd.apple.mpegurl')})
+                            resp = requests.post("https://catbox.moe/user/api.php", data={'reqtype': 'fileupload', 'userhash': '4743fd4cd7b648c176c6e5800'}, files={'fileToUpload': (base_name, f, 'application/vnd.apple.mpegurl')}, headers={'User-Agent': 'Mozilla/5.0'})
                             if resp.status_code == 200 and resp.text.startswith("http"): return resp.text.strip()
                         return None
                     link = await asyncio.to_thread(up_cat)
@@ -159,7 +158,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     res = await response.json()
                                     if res.get("success"): link = f"https://pixeldrain.com/api/file/{res.get('id')}"
                 elif api == "uguu":
-                    async with aiohttp.ClientSession(timeout=custom_timeout) as session:
+                    async with aiohttp.ClientSession(timeout=custom_timeout, headers={'User-Agent': 'Mozilla/5.0'}) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
                             data.add_field('files[]', f, filename=base_name)
@@ -168,7 +167,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     res = await response.json()
                                     if res.get("success"): link = res["files"][0]["url"]
                 elif api == "litterbox":
-                    async with aiohttp.ClientSession(timeout=custom_timeout) as session:
+                    async with aiohttp.ClientSession(timeout=custom_timeout, headers={'User-Agent': 'Mozilla/5.0'}) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
                             data.add_field('reqtype', 'fileupload')
@@ -289,7 +288,7 @@ async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, for
             edit_state["time"] = time.time()
         except: pass
 
-# ================== دالة توليد وتحميل صور الذكاء الاصطناعي (الحل الجذري) ==================
+# ================== دالة توليد وتحميل صور الذكاء الاصطناعي (معدلة لتجنب الحظر) ==================
 def download_ai_image(keyword):
     if keyword:
         prompt = f"Luxury Premium {keyword} sports tv broadcast, 4k resolution, cinematic lighting, neon dark background, iptv concept"
@@ -300,15 +299,20 @@ def download_ai_image(keyword):
     url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&seed={random.randint(1, 999999)}"
     img_path = f"ai_cover_{uuid.uuid4().hex[:4]}.jpg"
     
-    # تحميل الصورة محلياً في GitHub لضمان عدم رفض تيليجرام لها
-    for attempt in range(2):
+    # تمويه السيرفر باش موقع الذكاء الاصطناعي يعطينا الصورة
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    for attempt in range(3):
         try:
-            resp = requests.get(url, timeout=40)
-            if resp.status_code == 200:
+            resp = requests.get(url, headers=headers, timeout=25)
+            # التأكد بلي حجم الصورة كبير (ماشي رسالة خطأ)
+            if resp.status_code == 200 and len(resp.content) > 10000:
                 with open(img_path, 'wb') as f:
                     f.write(resp.content)
                 return img_path
-        except Exception as e:
+        except Exception:
             time.sleep(2)
     return None
 
@@ -374,12 +378,12 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         await app.stop()
 
         if collected_links:
-            await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة (توليد وتحميل الصورة الفخمة أولاً)...", edit_state, None, force=True)
+            await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة (الصورة أولاً ثم الروابط)...", edit_state, None, force=True)
             
             if keyword: cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
             else: cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
             
-            # --- الخطوة 1: تحميل الصورة وإرسالها كمنشور مستقل بملف حقيقي ---
+            # --- الخطوة 1: تحميل الصورة الفخمة وإرسالها كمنشور مستقل ---
             img_path = await asyncio.to_thread(download_ai_image, keyword)
             simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
             
@@ -389,12 +393,15 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                         await bot.send_photo(chat_id=CHANNEL_ID, photo=f_img, caption=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
                     safe_delete(img_path)
                 else:
-                    await bot.send_message(chat_id=CHANNEL_ID, text=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
+                    # الخطة البديلة: إذا فشل تحميل الصورة، يبعث اللوجو الأصلي نتاعك
+                    fallback_img = "https://files.catbox.moe/goe4nn.jpg"
+                    await bot.send_photo(chat_id=CHANNEL_ID, photo=fallback_img, caption=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
                 await asyncio.sleep(2)
             except Exception as e: 
                 print(f"Error sending photo: {e}")
+                await bot.send_message(chat_id=CHANNEL_ID, text=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
             
-            # --- الخطوة 2: إرسال الروابط مقسمة بقوالبك الأصلية الفخمة ---
+            # --- الخطوة 2: إرسال جميع الروابط (مقسّمة عشرات) بقوالبك الأصلية الفخمة ---
             first_batch = collected_links[:5]
             remaining_links = collected_links[5:]
             
