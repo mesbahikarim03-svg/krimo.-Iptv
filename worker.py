@@ -107,7 +107,6 @@ async def is_link_working(url):
 
 def cleanup_old_github_files():
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/"
-    # تم تصحيح الخطأ المطبعي هنا (استبدال = بـ :)
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
     try:
         resp = requests.get(api_url, headers=headers)
@@ -290,14 +289,24 @@ async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, for
             edit_state["time"] = time.time()
         except: pass
 
-# ================== دالة توليد صور الذكاء الاصطناعي الفخمة ==================
-def generate_ai_image_url(keyword):
+# ================== دالة تحميل صورة الذكاء الاصطناعي ==================
+def download_ai_image(keyword):
     if keyword:
-        prompt = f"Futuristic cinematic 3D streaming overlay with glowing neon text {keyword.upper()} sport server, stadium dark background, ultra realistic 4k resolution"
+        prompt = f"Luxury Premium {keyword} sports tv broadcast, 4k resolution, cinematic lighting, neon dark background, iptv concept"
     else:
-        prompt = "Futuristic modern Smart TV showing global IPTV world channels playlist, cinematic neon dark background, premium 4k resolution"
+        prompt = "Luxury Premium Smart TV IPTV worldwide channels broadcast, 4k resolution, cinematic lighting, neon dark background"
     encoded_prompt = quote(prompt)
-    return f"https://image.pollinations.ai/prompt/{encoded_prompt}.jpg?width=1024&height=1024&nologo=true&seed={random.randint(1, 99999)}"
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&seed={random.randint(1, 99999)}"
+    try:
+        resp = requests.get(url, timeout=30)
+        if resp.status_code == 200:
+            img_path = f"ai_cover_{uuid.uuid4().hex[:4]}.jpg"
+            with open(img_path, 'wb') as f:
+                f.write(resp.content)
+            return img_path
+    except Exception as e:
+        print(f"Error downloading AI image: {e}")
+    return None
 
 # ================== أوامر الصيد والسحب ==================
 async def run_hunter_action(bot, chat_id, message_id, args):
@@ -308,7 +317,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         
         await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد المباشر بالتوربو...**", edit_state, stop_button(), force=True)
         
-        app = Client("wassim_fast_scraper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+        app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
         await app.start()
 
         found_count, scanned, collected_links, tested_urls = 0, 0, [], set()
@@ -361,25 +370,35 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         await app.stop()
 
         if collected_links:
-            await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة (الصورة أولاً ثم الروابط)...", edit_state, None, force=True)
+            await safe_edit(bot, chat_id, message_id, f"🚀 **انتهى الصيد!**\nجاري النشر في القناة (توليد الصورة الفخمة أولاً)...", edit_state, None, force=True)
             
-            # --- الخطوة 1: إرسال الصورة الفخمة كمنشور مستقل بقالب بسيط جداً وبدون روابط ---
-            ai_image_url = generate_ai_image_url(keyword)
-            simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
-            
-            try:
-                await bot.send_photo(chat_id=CHANNEL_ID, photo=ai_image_url, caption=simple_img_caption, parse_mode="HTML")
-                await asyncio.sleep(2)
-            except: pass
-            
-            # --- الخطوة 2: إرسال الروابط تحتها في رسائل عادية باستخدام القوالب الأصلية ---
             if keyword: cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
             else: cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
             
-            # نشر الروابط (كل 10 في رسالة نصية عادية لتفادي الحظر)
-            chunk_size = 10
-            for i in range(0, len(collected_links), chunk_size):
-                chunk = collected_links[i:i + chunk_size]
+            first_batch = collected_links[:5]
+            remaining_links = collected_links[5:]
+            
+            # --- الخطوة 1: تحميل الصورة الفخمة وإرسالها كملف فعلي ---
+            img_path = await asyncio.to_thread(download_ai_image, keyword)
+            simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
+            
+            try:
+                if img_path and os.path.exists(img_path):
+                    with open(img_path, 'rb') as f_img:
+                        await bot.send_photo(chat_id=CHANNEL_ID, photo=f_img, caption=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
+                    safe_delete(img_path)
+                else:
+                    # في حالة فشل الذكاء الاصطناعي يرسل الرسالة كنص فقط
+                    await bot.send_message(chat_id=CHANNEL_ID, text=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
+                await asyncio.sleep(2)
+            except Exception as e:
+                print(f"Error sending image: {e}")
+            
+            # --- الخطوة 2: إرسال الدفعة الأولى (5) ثم باقي الدفعات (كل 10 روابط) في رسائل نصية عادية ---
+            all_chunks = [first_batch] + [remaining_links[i:i + 10] for i in range(0, len(remaining_links), 10)]
+            
+            for chunk in all_chunks:
+                if not chunk: continue
                 caption_n = LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(chunk))
                 if keyword: caption_n = caption_n.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
                 if any("pixeldrain" in l or "litterbox" in l or "uguu" in l for l in chunk):
@@ -392,7 +411,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         else: 
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة.")
     except Exception as e: 
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ أثناء النشر: {e}")
 
 async def run_hunttxt_action(bot, chat_id, message_id, args):
     try:
