@@ -1,3 +1,5 @@
+
+
 import os
 import json
 import asyncio
@@ -81,7 +83,7 @@ LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜�
 3️⃣ Select "Add Playlist / M3U URL".
 4️⃣ Paste & Enjoy! 🍿
 
-♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝗲 & 𝘚𝘶𝘱𝘱𝘰𝘳𝘁 𝘜𝘴!"""
+♻️ 𝘗𝘭𝘦𝘢𝘴𝗲 𝘚𝘩𝘢𝘳𝗲 & 𝘚𝘂𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
 
 def build_post_keyboard():
     return InlineKeyboardMarkup([
@@ -94,15 +96,18 @@ def stop_button():
 
 def safe_delete(filepath):
     try:
-        if os.path.exists(filepath): os.remove(filepath)
-    except: pass
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    except:
+        pass
 
 async def is_link_working(url):
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
             async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as response:
                 return response.status == 200
-    except: return False
+    except:
+        return False
 
 def cleanup_old_github_files():
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/"
@@ -116,17 +121,22 @@ def cleanup_old_github_files():
                     try:
                         if int(time.time()) - int(name.split("_")[1]) > 36000:
                             requests.delete(file.get("url"), json={"message": f"Auto-delete: {name}", "sha": file.get("sha")}, headers=headers)
-                    except: continue
-    except: pass
+                    except:
+                        continue
+    except:
+        pass
 
 async def upload_to_cloud(filename, selected_api="all"):
-    if not os.path.exists(filename) or os.path.getsize(filename) == 0: return None
+    if not os.path.exists(filename) or os.path.getsize(filename) == 0:
+        return None
     size_mb = os.path.getsize(filename) / (1024 * 1024)
     base_name = os.path.basename(filename)
     custom_timeout = aiohttp.ClientTimeout(total=90)
     apis_to_try = ["github", "catbox_m3u8", "pixeldrain", "uguu", "litterbox"] if selected_api == "all" else [selected_api]
+    
     for api in apis_to_try:
-        if api == "github" and size_mb > 95: continue
+        if api == "github" and size_mb > 95:
+            continue
         for attempt in range(1, 3):
             try:
                 link = None
@@ -134,16 +144,18 @@ async def upload_to_cloud(filename, selected_api="all"):
                     cleanup_old_github_files()
                     safe_name = f"FIW_{int(time.time())}_{attempt}_{uuid.uuid4().hex[:6]}_{base_name}"
                     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/{safe_name}"
-                    with open(filename, "rb") as f: encoded_content = base64.b64encode(f.read()).decode('utf-8')
+                    with open(filename, "rb") as f:
+                        encoded_content = base64.b64encode(f.read()).decode('utf-8')
                     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
                     payload = {"message": f"Auto Upload {safe_name}", "content": encoded_content}
                     async with aiohttp.ClientSession(timeout=custom_timeout) as session:
                         async with session.put(api_url, json=payload, headers=headers) as response:
-                            if response.status in [201, 200]: link = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/main/{safe_name}"
+                            if response.status in [201, 200]:
+                                link = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/main/{safe_name}"
                 elif api == "catbox_m3u8":
                     def up_cat():
                         with open(filename, 'rb') as f:
-                            resp = requests.post("https://catbox.moe/user/api.php", data={'reqtype': 'fileupload', 'userhash': '4743fd4cd7b648c176c6e5800'}, files={'fileToUpload': (base_name, f, 'application/vnd.apple.mpegurl')}, headers={'User-Agent': 'Mozilla/5.0'})
+                            resp = requests.post("https://catbox.moe/user/api.php", data={'reqtype': 'fileupload', 'userhash': '4743fd4cd7b648c176c6e5800'}, files={'fileToUpload': (base_name, f, 'application/vnd.apple.mpegurl')})
                             if resp.status_code == 200 and resp.text.startswith("http"): return resp.text.strip()
                         return None
                     link = await asyncio.to_thread(up_cat)
@@ -158,7 +170,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     res = await response.json()
                                     if res.get("success"): link = f"https://pixeldrain.com/api/file/{res.get('id')}"
                 elif api == "uguu":
-                    async with aiohttp.ClientSession(timeout=custom_timeout, headers={'User-Agent': 'Mozilla/5.0'}) as session:
+                    async with aiohttp.ClientSession(timeout=custom_timeout) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
                             data.add_field('files[]', f, filename=base_name)
@@ -167,7 +179,7 @@ async def upload_to_cloud(filename, selected_api="all"):
                                     res = await response.json()
                                     if res.get("success"): link = res["files"][0]["url"]
                 elif api == "litterbox":
-                    async with aiohttp.ClientSession(timeout=custom_timeout, headers={'User-Agent': 'Mozilla/5.0'}) as session:
+                    async with aiohttp.ClientSession(timeout=custom_timeout) as session:
                         with open(filename, 'rb') as f:
                             data = aiohttp.FormData()
                             data.add_field('reqtype', 'fileupload')
@@ -177,8 +189,10 @@ async def upload_to_cloud(filename, selected_api="all"):
                                 if response.status == 200:
                                     res = await response.text()
                                     if res.startswith("http"): link = res.strip()
-                if link: return link
-            except Exception: await asyncio.sleep(attempt * 2)
+                if link:
+                    return link
+            except Exception:
+                await asyncio.sleep(attempt * 2)
     return None
 
 def analyze_file(filepath):
@@ -388,8 +402,10 @@ async def run_hunter_action(bot, chat_id, message_id, args):
             
             await safe_edit(bot, chat_id, message_id, "🚀 **الصورة جاهزة! جاري النشر في القناة (الصورة أولاً ثم الروابط)...**", edit_state, None, force=True)
             
-            if keyword: cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
-            else: cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
+            if keyword:
+                cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
+            else:
+                cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
             
             # --- الخطوة 2: نشر الصورة الفخمة كمنشور مستقل بكابشن بسيط ---
             simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
@@ -403,7 +419,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                     # الخطة البديلة المضمونة: إذا فشل الذكاء الاصطناعي، يرسل اللوجو الأصلي نتاعك
                     fallback_img = "https://files.catbox.moe/goe4nn.jpg"
                     await bot.send_photo(chat_id=CHANNEL_ID, photo=fallback_img, caption=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
-            except Exception as e: 
+            except Exception as e:
                 print(f"Error sending photo: {e}")
                 await bot.send_message(chat_id=CHANNEL_ID, text=simple_img_caption, parse_mode="HTML", reply_markup=build_post_keyboard())
             
@@ -417,7 +433,8 @@ async def run_hunter_action(bot, chat_id, message_id, args):
             for chunk in all_chunks:
                 if not chunk: continue
                 caption_n = LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(chunk))
-                if keyword: caption_n = caption_n.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
+                if keyword:
+                    caption_n = caption_n.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
                 if any("pixeldrain" in l or "litterbox" in l or "uguu" in l for l in chunk):
                     caption_n = WARNING_TEXT + caption_n
                     
@@ -494,39 +511,4 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
             txt_filename = f"Cloud_Links_{target_count}_{uuid.uuid4().hex[:4]}.txt"
             with open(txt_filename, "w", encoding="utf-8") as f: f.write("\n".join(collected_links_raw))
             with open(txt_filename, "rb") as f_send:
-                await bot.send_document(chat_id=chat_id, document=f_send, caption=f"✅ **اكتمل صيد الملف النصي!**\nإليك {len(collected_links_raw)} روابط سحابية.")
-            safe_delete(txt_filename)
-            await bot.delete_message(chat_id=chat_id, message_id=message_id)
-        else: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج.")
-    except Exception as e: await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
-
-async def run_scrape_action(bot, chat_id, message_id, args):
-    try:
-        edit_state = {"time": 0}
-        target_count = int(args[0])
-        await safe_edit(bot, chat_id, message_id, "⚡ **بدأ السحب السريع الخام للمصنع...**", edit_state, stop_button(), force=True)
-        
-        app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
-        await app.start()
-
-        all_links = []
-        async for dialog in app.get_dialogs():
-            chat = dialog.chat
-            if chat.type not in [enums.ChatType.CHANNEL, enums.ChatType.SUPERGROUP, enums.ChatType.GROUP]: continue
-            try:
-                async for msg in app.get_chat_history(chat.id, limit=50):
-                    text = str(msg.text or msg.caption)
-                    urls = re.findall(r'(https?://[^\s]+)', text)
-                    for u in urls:
-                        if 'm3u' in u.lower() or 'get.php' in u.lower(): all_links.append(u)
-                    if len(all_links) >= target_count * 2: break
-            except: pass
-            if len(all_links) >= target_count * 2: break
-
-        await app.stop()
-        final_links = list(set(all_links))[:target_count]
-        if final_links:
-            txt_filename = f"Scraped_{len(final_links)}.txt"
-            with open(txt_filename, "w", encoding="utf-8") as f: f.write("\n".join(final_links))
-            with open(txt_filename, "rb") as f_send:
-                await bot
+                await bot.send_document(chat_id=chat_id, document=f_send, caption=
