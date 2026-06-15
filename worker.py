@@ -1,4 +1,4 @@
-!pip install pyrogram tgcrypto nest_asyncio python-telegram-bot aiohttp requests -U
+
 
 import os
 import json
