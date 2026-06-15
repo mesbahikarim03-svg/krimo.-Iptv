@@ -18,7 +18,7 @@ from urllib.parse import quote
 from pyrogram import Client, enums
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 
-# ================== كود الكشف والربط بالخزنة السرية ==================
+# ================== كود الكشف والربط ==================
 print("🔍 DEBUG: جاري فحص متغيرات البيئة...")
 s_str = os.environ.get("MY_SESSION_STRING", "").strip()
 
@@ -29,7 +29,6 @@ if not s_str:
 # ================== بياناتك السرية المحمية ==================
 TOKEN = os.environ.get("MY_TELEGRAM_TOKEN")
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
-HF_TOKEN = os.environ.get("HF_TOKEN", "").strip() # توكن Hugging Face نتاعك
 
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"
@@ -43,7 +42,6 @@ MIN_CHANNELS_REQUIRED = 1000
 CHANNEL_ID = "@free_iptv_world"
 CHANNEL_NAME_FOR_FILE = "FREE_IPTV_WORLD"
 
-MY_CHANNELS = ["عالم iptv مجاني", "دردشة مجانية عبر الإنترنت", "تحديث مجاني لعالم البث عبر الإنترنت"]
 TARGET_KEYWORDS = ["iptv", "m3u", "xtream", "mac", "portal", "sat", "tv", "server", "stb", "cccam", "streaming", "restream", "codes", "vip", "app"]
 
 ADULT_WORDS = ["xxx", "porn", "adult", "adults", "sex", "18+", "+18", "erotic", "playboy", "amateur", "onlyfans", "brazzers", "vivid", "hustler", "penthouse", "babes", "realitykings", "naughty", "bangbros", "milf", "lesbian", "gay", "cam", "nsfw", "x-art", "babe", "pussy", "dick", "matures", "hardcore", "xnxx", "xvideos", "pornhub", "redtube", "kamasutra", "peep"]
@@ -98,13 +96,6 @@ def safe_delete(filepath):
     try:
         if os.path.exists(filepath): os.remove(filepath)
     except: pass
-
-async def is_link_working(url):
-    try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
-            async with session.get(url, headers={'User-Agent': 'Mozilla/5.0'}) as response:
-                return response.status == 200
-    except: return False
 
 def cleanup_old_github_files():
     api_url = f"https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/"
@@ -291,54 +282,39 @@ async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, for
             edit_state["time"] = time.time()
         except: pass
 
-# ================== دالة الذكاء الاصطناعي مع كشاف الأخطاء (الرادار) ==================
+# ================== دالة Lexica: جلب صورة جاهزة ومضمونة 100% ==================
 async def download_ai_image_async(bot, chat_id, message_id, keyword, edit_state):
-    # 1. فحص التوكن
-    if not HF_TOKEN:
-        await safe_edit(bot, chat_id, message_id, "⚠️ **تنبيه كشاف الأخطاء:** السكريبت ما راهوش لاقي التوكن `HF_TOKEN` في إعدادات الخزنة نتاع جيت هاب!\nتأكد أنك سميتو بالضبط `HF_TOKEN` وحطيت القيمة نتاعو.", edit_state, force=True)
-        await asyncio.sleep(5)
-        return None
-
-    await safe_edit(bot, chat_id, message_id, "🎨 **جاري رسم الصورة بالذكاء الاصطناعي...**", edit_state, force=True)
+    await safe_edit(bot, chat_id, message_id, "🎨 **جاري جلب غلاف ذكاء اصطناعي فخم من المعرض (Lexica)...**", edit_state, force=True)
     
-    prompt = f"Luxury Premium {keyword} sports tv broadcast streaming server, 4k resolution, cinematic lighting, neon dark background, iptv concept" if keyword else "Luxury Premium Smart TV IPTV worldwide channels broadcast, 4k resolution, cinematic lighting, neon dark background"
-    
-    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": prompt}
+    # اختيار كلمات بحث ممتازة
+    search_query = f"{keyword} sports tv broadcast streaming neon 4k" if keyword else "Luxury Smart TV IPTV broadcast neon 4k"
+    lexica_url = f"https://lexica.art/api/v1/search?q={quote(search_query)}"
     img_path = f"ai_cover_{uuid.uuid4().hex[:4]}.jpg"
     
-    last_error = ""
-    
     async with aiohttp.ClientSession() as session:
-        for attempt in range(1, 4):
-            try:
-                await safe_edit(bot, chat_id, message_id, f"⏳ **جلب الصورة من السيرفر... المحاولة ({attempt}/3)**", edit_state, force=True)
-                async with session.post(API_URL, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=40)) as resp:
-                    if resp.status == 200:
-                        content = await resp.read()
-                        with open(img_path, 'wb') as f:
-                            f.write(content)
-                        await safe_edit(bot, chat_id, message_id, "✅ **تم رسم الصورة بنجاح!**", edit_state, force=True)
-                        await asyncio.sleep(2)
-                        return img_path
-                    elif resp.status == 503:
-                        last_error = "503 - المودال يسخن (Loading)"
-                        await safe_edit(bot, chat_id, message_id, "⚠️ **المودال راه يسخن، ننتظر 10 ثواني ونعاود...**", edit_state, force=True)
-                        await asyncio.sleep(10)
-                    else:
-                        error_text = await resp.text()
-                        last_error = f"كود {resp.status}: {error_text[:150]}"
-                        await safe_edit(bot, chat_id, message_id, f"❌ **السيرفر رفض الطلب!**\nالسبب: `{last_error}`", edit_state, force=True)
-                        await asyncio.sleep(5)
-                        break # إذا كان التوكن غالط، نحبسو ما نزيدوش نحاولو
-            except Exception as e:
-                last_error = f"مشكل تقني (أنترنت أو تايم أوت): {str(e)[:150]}"
-                await safe_edit(bot, chat_id, message_id, f"❌ **فشل الاتصال!**\nالسبب: `{last_error}`", edit_state, force=True)
-                await asyncio.sleep(4)
-                
-    await safe_edit(bot, chat_id, message_id, f"🛑 **فشل الذكاء الاصطناعي نهائياً!**\nالسبب لي خلاه يهبط اللوجو هو:\n`{last_error}`", edit_state, force=True)
-    await asyncio.sleep(6)
+        try:
+            # 1. البحث في المعرض (استجابة فورية)
+            async with session.get(lexica_url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    images = data.get("images", [])
+                    if images:
+                        # 2. نختار صورة عشوائية من أفضل 8 نتائج
+                        img_url = random.choice(images[:8]).get("src")
+                        
+                        # 3. تحميل الصورة
+                        async with session.get(img_url, timeout=aiohttp.ClientTimeout(total=20)) as img_resp:
+                            if img_resp.status == 200:
+                                with open(img_path, 'wb') as f:
+                                    f.write(await img_resp.read())
+                                await safe_edit(bot, chat_id, message_id, "✅ **تم جلب الغلاف بنجاح!**", edit_state, force=True)
+                                await asyncio.sleep(2)
+                                return img_path
+        except Exception as e:
+            print(f"Lexica Error: {e}")
+
+    await safe_edit(bot, chat_id, message_id, "❌ **استعصى جلب الصورة، سيتم وضع اللوجو الرسمي كبديل.**", edit_state, force=True)
+    await asyncio.sleep(3)
     return None
 
 # ================== أوامر الصيد والسحب ==================
