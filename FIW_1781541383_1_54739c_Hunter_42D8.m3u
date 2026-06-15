@@ -1,0 +1,36 @@
+﻿#EXTM3U
+#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD
+https://files.catbox.moe/npglfu.mp4
+#EXTINF:0 tvg-rec="0",Eurosport 2 UHD
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/19431/index.m3u8
+#EXTINF:0 tvg-rec="0",Eurosport 1 UHD
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/19432/index.m3u8
+#EXTINF:0 tvg-rec="7",Eurosport 1 HD
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/228/index.m3u8
+#EXTINF:0 tvg-rec="7",Eurosport 2 HD
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/234/index.m3u8
+#EXTINF:0 tvg-rec="3",Eurosport 1 HD orig
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/5075/index.m3u8
+#EXTINF:0 tvg-rec="7",Eurosport 1
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/141/index.m3u8
+#EXTINF:0 tvg-rec="3",Eurosport 2 HD orig
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/5076/index.m3u8
+#EXTINF:0 tvg-rec="3",Eurosport 1 orig
+#EXTGRP:Спорт | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/9247/index.m3u8
+#EXTINF:0 tvg-rec="0",Eurosport 1 FHD DE
+#EXTGRP:Германия | Germany | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/15179/index.m3u8
+#EXTINF:0 tvg-rec="0",Eurosport 1 HD DE
+#EXTGRP:Германия | Germany | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/31314/index.m3u8
+#EXTINF:0 tvg-rec="0",Eurosport 2 HD DE
+#EXTGRP:Германия | Germany | 🌟 FREE IPTV WORLD 🌟
+http://47a63631.edemist.com/iptv/LVFGLXHUW45A8PBECGUURD6K/31315/index.m3u8
