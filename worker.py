@@ -1,4 +1,4 @@
-
+!pip install pyrogram tgcrypto nest_asyncio python-telegram-bot aiohttp requests -U
 
 import os
 import json
@@ -54,8 +54,8 @@ WARNING_TEXT = """<blockquote>⚠️ <b>ATTENTION / انتباه:</b>
 Links are valid for <b>10 HOURS</b> from publishing, then they will be deleted automatically. Download them NOW!
 مدة الروابط 10 ساعات فقط من وقت النشر ثم سيتم حذفها. يرجى التحميل أو النسخ الآن!</blockquote>\n\n"""
 
-LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 👑𝗜𝗡𝗞𝗦 🔗
-🌍 𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 <b>𝗪𝗢𝗥𝗟𝗗</b> 🌍
+LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗
+🌍 𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗 🌍
 
 <blockquote>⚠️ <b>إبراء ذمة:</b>
 نبرأ إلى الله من أي استخدام سيء أو الدخول لقنوات غير لائقة. 🤲</blockquote>
@@ -70,25 +70,25 @@ LINK_POST_CAPTION = """🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 👑𝗜�
 ├ 🎬 𝗠𝗼𝘃𝗶𝗲𝘀: Netflix, OSN, Disney+
 └ 📱 𝗗𝗲𝘃𝗶𝗰𝗲𝘀: Smart TV, Android, iOS, PC
 
-🌍 𝗪𝗼𝗿𝗹𝗱𝘄𝗶𝗱𝗲 𝗖𝗵ａ𝗻𝗻е𝗹𝘀 (𝗩𝗜package):
+🌍 𝗪𝗼𝗿𝗹𝗱𝘄𝗶𝗱𝗲 𝗖𝗵𝗮𝗻𝗻𝗲𝗹𝘀 (𝗩𝗜𝗣):
 🇩🇿 الجزائر | 🇲🇦 المغرب | 🇹🇳 تونس | 🇪🇬 مصر | 🇸🇦 السعودية | 🇦🇪 الإمارات
 🇫🇷 France | 🇬🇧 UK | 🇺🇸 USA | 🇩🇪 Germany | 🇮🇹 Italy | 🇪🇸 Spain
 🇨🇦 Canada | 🇳🇱 Netherlands | 🇧🇪 Belgium | 🇸🇪 Sweden | 🇨🇭 Swiss
 🇹🇷 Türkiye |
 ... <b>And Many More!</b> 🔥</blockquote>
 
-⚙️ 𝗛𝗼𝘄 𝘁𝗼 𝘂𝘀е?
+⚙️ 𝗛𝗼𝘄 𝘁𝗼 𝘂𝘀𝗲?
 1️⃣ Copy the link above.
 2️⃣ Open your IPTV Player (Smarters, Tivimate, VLC).
 3️⃣ Select "Add Playlist / M3U URL".
 4️⃣ Paste & Enjoy! 🍿
 
-♻️ 𝘗𝘭е𝘢𝘴е 𝘚𝘩𝘢𝘳е & 𝘚υ𝘱𝘱𝗼𝗿𝘁 𝘜𝘴!"""
+♻️ 𝘗𝘭𝘦𝘢𝘴𝘦 𝘚𝘩𝘢𝘳𝘦 & 𝘚𝘶𝘱𝘱𝘰𝘳𝘵 𝘜𝘴!"""
 
 def build_post_keyboard():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📣 𝗢𝘂𝗿 𝗖𝗵𝗮𝗻𝗻е𝗹", url="https://t.me/free_iptv_world"), InlineKeyboardButton("💬 𝗢𝘂𝗿 𝗚𝗿𝗼𝘂𝗽", url="https://t.me/FREE_IPTV_WORLD_CHAT")],
-        [InlineKeyboardButton("🔁 𝗦𝗵ａ𝗿е 𝗣𝗼𝘀𝘁", url="https://t.me/share/url?url=https://t.me/free_iptv_world&text=🔥%20أقوى%20سيرفرات%20IPTV%20مجاناً%20🔥")]
+        [InlineKeyboardButton("📣 𝗢𝘂𝗿 𝗖𝗵𝗮𝗻𝗻𝗲𝗹", url="https://t.me/free_iptv_world"), InlineKeyboardButton("💬 𝗢𝘂𝗿 𝗚𝗿𝗼𝘂𝗽", url="https://t.me/FREE_IPTV_WORLD_CHAT")],
+        [InlineKeyboardButton("🔁 𝗦𝗵𝗮𝗿𝗲 𝗣𝗼𝘀𝘁", url="https://t.me/share/url?url=https://t.me/free_iptv_world&text=🔥%20أقوى%20سيرفرات%20IPTV%20مجاناً%20🔥")]
     ])
 
 def stop_button():
@@ -291,15 +291,20 @@ async def safe_edit(bot, chat_id, message_id, text, edit_state, markup=None, for
             edit_state["time"] = time.time()
         except: pass
 
-# ================== دالة توليد الصورة المحصنة بالكامل عبر Hugging Face ==================
+# ================== دالة توليد الصورة الذكية والمضمونة عبر Hugging Face ==================
 async def download_ai_image_async(bot, chat_id, message_id, keyword, edit_state):
+    """
+    تحميل صورة فخمة من Hugging Face باستخدام التوكن.
+    في حال فشل السيرفر، ترجع None ويتم استخدام اللوجو الأصلي في الدالة الرئيسية.
+    """
     if not HF_TOKEN:
-        print("⚠️ لم يتم العثور على HF_TOKEN!")
+        await safe_edit(bot, chat_id, message_id, "⚠️ **تنبيه:** لم يتم العثور على HF_TOKEN في إعدادات الخزنة. سيتم استخدام اللوجو الافتراضي.", edit_state, force=True)
+        await asyncio.sleep(2)
         return None
 
-    await safe_edit(bot, chat_id, message_id, "🎨 **جاري رسم الصورة الفخمة بالذكاء الاصطناعي (يرجى الانتظار)...**", edit_state, force=True)
+    await safe_edit(bot, chat_id, message_id, "🎨 **جاري رسم غلاف الباقة بالذكاء الاصطناعي (Stable Diffusion)...**", edit_state, force=True)
     
-    prompt = f"Luxury Premium {keyword} sports tv broadcast streaming server, 4k resolution, cinematic lighting, neon dark background, iptv concept" if keyword else "Luxury Premium Smart TV IPTV worldwide channels broadcast, 4k resolution, cinematic lighting, neon dark background"
+    prompt = f"Luxury Premium {keyword} sports tv broadcast streaming setup, 4k resolution, cinematic lighting, neon dark background, iptv concept" if keyword else "Luxury Premium Smart TV IPTV worldwide channels broadcast, 4k resolution, cinematic lighting, neon dark background"
     
     API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
@@ -315,13 +320,17 @@ async def download_ai_image_async(bot, chat_id, message_id, keyword, edit_state)
                         content = await resp.read()
                         with open(img_path, 'wb') as f:
                             f.write(content)
+                        await safe_edit(bot, chat_id, message_id, "✅ **تم رسم الصورة بنجاح!**", edit_state, force=True)
                         return img_path
                     elif resp.status == 503:
-                        await safe_edit(bot, chat_id, message_id, "⚠️ **السيرفر في وضع التحميل (Loading)، ننتظر 10 ثواني...**", edit_state, force=True)
-                        await asyncio.sleep(10)
+                        await safe_edit(bot, chat_id, message_id, "⚠️ **السيرفر يقوم بتحميل المودال (Loading)، ننتظر قليلاً...**", edit_state, force=True)
+                        await asyncio.sleep(8)
+                    else:
+                        break
             except Exception as e:
-                print(f"Error fetching image: {e}")
+                print(f"Error fetching AI image: {e}")
                 await asyncio.sleep(2)
+                
     return None
 
 # ================== أوامر الصيد والسحب ==================
@@ -386,18 +395,18 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         await app.stop()
 
         if collected_links:
-            # --- الخطوة 1: استخراج الصورة الفخمة من Hugging Face ---
+            # --- 1. تحميل الصورة ---
             img_path = await download_ai_image_async(bot, chat_id, message_id, keyword, edit_state)
             
-            await safe_edit(bot, chat_id, message_id, "🚀 **الصورة جاهزة! جاري النشر في القناة (الصورة أولاً ثم الروابط)...**", edit_state, None, force=True)
+            await safe_edit(bot, chat_id, message_id, "🚀 **جاري النشر في القناة بالتقسيم الشرعي الاحترافي...**", edit_state, None, force=True)
             
             if keyword:
                 cap_title = f"🔥 𝗘𝗫𝗖𝗟𝗨𝗦𝗜𝗩𝗘 𝗦𝗘𝗥𝗩𝗘𝗥: {keyword.upper()} 🔥"
             else:
-                cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜??𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
+                cap_title = "🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗"
             
-            # --- الخطوة 2: نشر الصورة الفخمة كمنشور مستقل بكابشن بسيط ---
-            simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜??𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
+            # --- 2. إرسال الصورة الفخمة (أو اللوجو كبديل) كمنشور مستقل ---
+            simple_img_caption = f"🏆 <b>𝗙𝗥𝗘𝗘 𝗜𝗣𝗧𝗩 𝗪𝗢𝗥𝗟𝗗</b> 🏆\n⚡ <i>New Exclusive {keyword.upper() if keyword else 'Premium'} Package Uploaded!</i>\n\n👇 <b>Check the links in the messages below</b> 👇"
             
             try:
                 if img_path and os.path.exists(img_path):
@@ -411,7 +420,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                         )
                     safe_delete(img_path)
                 else:
-                    # الخطة البديلة المضمونة: إذا فشل الذكاء الاصطناعي، يرسل اللوجو الأصلي نتاعك
+                    # الخطة البديلة: اللوجو
                     fallback_img = "https://files.catbox.moe/goe4nn.jpg"
                     await bot.send_photo(
                         chat_id=CHANNEL_ID,
@@ -431,14 +440,14 @@ async def run_hunter_action(bot, chat_id, message_id, args):
             
             await asyncio.sleep(2)
             
-            # --- الخطوة 3: إرسال الروابط (كل 10 في رسالة) بقوالبك الأصلية ---
+            # --- 3. إرسال الروابط مقسمة كل 10 في رسالة ---
             all_chunks = []
             for i in range(0, len(collected_links), 10):
                 all_chunks.append(collected_links[i:i+10])
             
             for chunk in all_chunks:
                 if not chunk: continue
-                caption_n = LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜??𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(chunk))
+                caption_n = LINK_POST_CAPTION.replace("🔗 𝗗𝗜𝗥𝗘𝗖𝗧 𝗜𝗣𝗧𝗩 𝗟𝗜𝗡𝗞𝗦 🔗", cap_title).replace("{links}", "\n\n".join(chunk))
                 if keyword:
                     caption_n = caption_n.replace("Premium Channels & VODs", f"Focus: {keyword.upper()} Channels")
                 if any("pixeldrain" in l or "litterbox" in l or "uguu" in l for l in chunk):
@@ -453,11 +462,11 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                 )
                 await asyncio.sleep(3)
                     
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم نشر الصورة الفخمة وتحتها {found_count} روابط بالقوالب الأصلية.")
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم النشر في القناة بنجاح.")
         else: 
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة.")
     except Exception as e: 
-        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ أثناء النشر: {e}")
+        await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ أثناء النشر النهائي: {e}")
 
 async def run_hunttxt_action(bot, chat_id, message_id, args):
     try:
@@ -545,7 +554,7 @@ async def run_scrape_action(bot, chat_id, message_id, args):
         target_count = int(args[0])
         await safe_edit(bot, chat_id, message_id, "⚡ **بدأ السحب السريع الخام للمصنع...**", edit_state, stop_button(), force=True)
         
-        app = Client("wassim_fast_scraper", api_id=24974564, api_hash=API_HASH, session_string=SESSION_STRING)
+        app = Client("wassim_fast_scraper", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
         await app.start()
 
         all_links = []
