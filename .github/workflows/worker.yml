@@ -1,33 +1,38 @@
-name: IPTV Heavy Worker
+name: IPTV AI Worker
 
 on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'Payload from Telegram Bot'
+        required: false
+        default: '{}'
   repository_dispatch:
-    types: [run_bot_task]
-
-concurrency:
-  group: iptv-bot
-  cancel-in-progress: false
+    types: [run_worker]
 
 jobs:
-  process:
+  run-bot-process:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
-      - name: Install Packages
-        run: pip install python-telegram-bot requests aiohttp pyrogram tgcrypto
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyrogram tgcrypto nest_asyncio python-telegram-bot aiohttp requests
 
-      - name: Run Heavy Script
+      - name: Run Worker Script
         env:
           MY_TELEGRAM_TOKEN: ${{ secrets.MY_TELEGRAM_TOKEN }}
           MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           MY_SESSION_STRING: ${{ secrets.MY_SESSION_STRING }}
-          PAYLOAD: '${{ toJSON(github.event.client_payload) }}'
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          PAYLOAD: ${{ github.event.client_payload.payload || github.event.inputs.payload || '{}' }}
         run: python worker.py
