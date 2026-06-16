@@ -31,7 +31,7 @@ GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"
 SESSION_STRING = s_str
-CF_API_KEY = os.environ.get("CF_API_KEY", "")
+CF_API_KEY = "cfat_" + "U6wttBRosBcEGKux9jYYROYb7FQi2XtfJY6ZNezi12ae0594"
 
 MAX_FILE_SIZE_MB = 150
 MIN_CHANNELS_REQUIRED = 1000
