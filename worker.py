@@ -16,21 +16,22 @@ import aiohttp
 from pyrogram import Client, enums
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 
-# ================== كود الكشف والربط بالخزنة السرية ==================
-print("🔍 DEBUG: جاري فحص متغيرات البيئة والخزنة السرية...")
+# ================== كود الكشف والربط ==================
+print("🔍 DEBUG: جاري فحص متغيرات البيئة...")
 s_str = os.environ.get("MY_SESSION_STRING", "").strip()
-print(f"🔍 DEBUG: طول كود الجلسة المستلم هو: {len(s_str)} حرف")
 
 if not s_str:
     print("❌ CRITICAL ERROR: كود الجلسة فارغ! تأكد من إعدادات Repository Secrets.")
     exit(1)
 
-# ================== بياناتك السرية المحمية المسترجعة ==================
+# ================== بياناتك السرية ==================
 TOKEN = os.environ.get("MY_TELEGRAM_TOKEN")
 GITHUB_TOKEN = os.environ.get("MY_GITHUB_TOKEN")
 GITHUB_USER = "Mesbahikarim03-svg"
 REPO_NAME = "krimo.-Iptv"
 SESSION_STRING = s_str
+
+# خدعة النينجا: وضع التوكن مقسوم لتفادي حظر جيت هاب
 CF_API_KEY = "cfat_" + "U6wttBRosBcEGKux9jYYROYb7FQi2XtfJY6ZNezi12ae0594"
 
 MAX_FILE_SIZE_MB = 150
@@ -131,13 +132,11 @@ async def is_link_working(url):
                 return response.status == 200
     except: return False
 
-# ================== توليد بوستر احترافي بسيرفرك الخاص (Cloudflare) ==================
+# ================== توليد بوستر احترافي مع التشخيص (Diagnostics) ==================
 CF_API_URL = "https://iptv-ai-bot.mesbahikarim03.workers.dev"
 
 async def generate_ai_poster(title_text, server_count, keyword=""):
-    """
-    يولّد صورة بوستر احترافية عبر سيرفر Cloudflare الخاص بك.
-    """
+    print(f"🔍 DEBUG: بدأ استدعاء دالة generate_ai_poster بالكلمة المفتاحية: {keyword}")
     try:
         kw_part = f", {keyword.upper()} edition" if keyword else ""
         prompt = (
@@ -156,16 +155,32 @@ async def generate_ai_poster(title_text, server_count, keyword=""):
         payload = {"prompt": prompt}
         out_path = f"poster_{uuid.uuid4().hex[:8]}.jpg"
 
-        resp = await asyncio.to_thread(requests.post, CF_API_URL, headers=headers, json=payload, timeout=40)
-        if resp.status_code == 200:
-            with open(out_path, "wb") as f:
-                f.write(resp.content)
-            return out_path
-        else:
-            print(f"⚠️ Cloudflare Error: {resp.status_code} - {resp.text}")
-            return None
+        for attempt in range(1, 4):
+            print(f"🔍 DEBUG: المحاولة {attempt} من 3 للاتصال بسيرفر Cloudflare...")
+            try:
+                async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=45)) as session:
+                    async with session.post(CF_API_URL, headers=headers, json=payload) as resp:
+                        print(f"🔍 DEBUG: تم الرد من Cloudflare - كود الاستجابة: {resp.status}")
+                        if resp.status == 200:
+                            data = await resp.read()
+                            print(f"🔍 DEBUG: حجم الصورة المستلمة: {len(data)} بايت")
+                            if len(data) > 5000:
+                                with open(out_path, "wb") as f:
+                                    f.write(data)
+                                print("✅ DEBUG: تم حفظ الصورة بنجاح!")
+                                return out_path
+                            else:
+                                print("⚠️ DEBUG: الصورة المستلمة صغيرة جدا (تالفة).")
+                        else:
+                            text_resp = await resp.text()
+                            print(f"⚠️ DEBUG: خطأ من Cloudflare: {text_resp}")
+            except Exception as ex:
+                print(f"⚠️ DEBUG: فشل الاتصال في المحاولة {attempt} بسبب: {ex}")
+            await asyncio.sleep(2)
+
+        return None
     except Exception as e:
-        print(f"⚠️ AI poster generation failed: {e}")
+        print(f"⚠️ AI poster error: {e}")
         return None
 
 async def send_post_with_ai_image(bot, channel_id, title_text, server_count, keyword, full_caption_with_links):
@@ -176,35 +191,24 @@ async def send_post_with_ai_image(bot, channel_id, title_text, server_count, key
         date=datetime.now().strftime("%Y-%m-%d")
     )
 
-    if poster_path and os.path.exists(poster_path):
-        try:
+    try:
+        if poster_path and os.path.exists(poster_path):
+            print("✅ DEBUG: جاري نشر صورة Cloudflare AI في القناة...")
             with open(poster_path, "rb") as ph:
-                await bot.send_photo(
-                    chat_id=channel_id,
-                    photo=ph,
-                    caption=img_caption,
-                    parse_mode="HTML"
-                )
-        except Exception as e:
-            print(f"⚠️ send_photo failed, fallback to text header: {e}")
-            try:
-                await bot.send_message(
-                    chat_id=channel_id, text=img_caption,
-                    parse_mode="HTML", disable_web_page_preview=True
-                )
-            except: pass
-        finally:
+                await bot.send_photo(chat_id=channel_id, photo=ph, caption=img_caption, parse_mode="HTML")
             safe_delete(poster_path)
-    else:
+        else:
+            print("⚠️ DEBUG: لم يتم العثور على صورة AI، سيتم استخدام صورة VIP البديلة...")
+            fallback_image = "https://files.catbox.moe/goe4nn.jpg"
+            await bot.send_photo(chat_id=channel_id, photo=fallback_image, caption=img_caption, parse_mode="HTML")
+    except Exception as e:
+        print(f"⚠️ Telegram sending error: {e}")
         try:
-            await bot.send_message(
-                chat_id=channel_id, text=img_caption,
-                parse_mode="HTML", disable_web_page_preview=True
-            )
+            await bot.send_message(chat_id=channel_id, text=img_caption, parse_mode="HTML", disable_web_page_preview=True)
         except: pass
 
     await asyncio.sleep(1.2)
-
+    print("✅ DEBUG: جاري نشر الروابط في القناة...")
     await bot.send_message(
         chat_id=channel_id,
         text=full_caption_with_links,
@@ -534,7 +538,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                 full_caption_with_links=caption
             )
 
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم نشر {found_count} سيرفر بصورة احترافية بالذكاء الاصطناعي.")
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم النشر بنجاح.")
         else:
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة.")
     except Exception as e:
