@@ -1,0 +1,7 @@
+﻿#EXTM3U
+#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD
+https://files.catbox.moe/npglfu.mp4
+#EXTINF:-1 group-title="Poland 🇵🇱",Film Cafe | 🌟 FREE IPTV WORLD 🌟
+http://81.15.109.89:8001/play/FilmCafe
+#EXTINF:-1 group-title="Италия 🇮🇹",CafeTV24 Veneto | 🌟 FREE IPTV WORLD 🌟
+https://srvx1.selftv.video/cafe/live/playlist.m3u8
