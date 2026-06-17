@@ -9,12 +9,14 @@ import uuid
 import zipfile
 import random
 import urllib.parse
+import io
 from datetime import datetime
 from collections import defaultdict
 import aiohttp
 
 from pyrogram import Client, enums
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from PIL import Image, ImageDraw, ImageFont
 
 # ================== كود الكشف والربط ==================
 print("🔍 DEBUG: جاري فحص متغيرات البيئة...")
@@ -132,21 +134,14 @@ async def is_link_working(url):
                 return response.status == 200
     except: return False
 
-# ================== توليد بوستر احترافي مع التشخيص (Diagnostics) ==================
+# ================== توليد بوستر احترافي مع دمج بايثون الخرافي ==================
 CF_API_URL = "https://iptv-ai-bot.mesbahikarim03.workers.dev"
 
 async def generate_ai_poster(title_text, server_count, keyword=""):
-    print(f"🔍 DEBUG: بدأ استدعاء دالة generate_ai_poster بالكلمة المفتاحية: {keyword}")
+    print(f"🔍 DEBUG: بدأ استدعاء دالة الطباعة بالكلمة المفتاحية: {keyword}")
     try:
-        kw_part = f", {keyword.upper()} edition" if keyword else ""
-        prompt = (
-            f"Ultra professional cinematic IPTV streaming poster, dark navy and gold luxury theme, "
-            f"glowing neon 'FREE IPTV WORLD' logo at top center, premium 4K TV channels mosaic background, "
-            f"world map with glowing connection lines, sports football movies netflix style icons, "
-            f"high-end modern minimalist design, bold elegant typography, "
-            f"text '{title_text}' embossed in metallic gold{kw_part}, "
-            f"premium VIP badge, highly detailed, 8k, sharp focus, dramatic lighting, no people, no faces"
-        )
+        # 1. طلب خلفية نظيفة تماماً من السيرفر
+        prompt = "Ultra-premium dark moody cinematic background with subtle golden dust and lighting, dark royal atmosphere, highly detailed, 8k, empty space in center, strictly no text, no logos"
         
         headers = {
             "Authorization": f"Bearer {CF_API_KEY}",
@@ -160,20 +155,63 @@ async def generate_ai_poster(title_text, server_count, keyword=""):
             try:
                 async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=45)) as session:
                     async with session.post(CF_API_URL, headers=headers, json=payload) as resp:
-                        print(f"🔍 DEBUG: تم الرد من Cloudflare - كود الاستجابة: {resp.status}")
                         if resp.status == 200:
                             data = await resp.read()
-                            print(f"🔍 DEBUG: حجم الصورة المستلمة: {len(data)} بايت")
                             if len(data) > 5000:
-                                with open(out_path, "wb") as f:
-                                    f.write(data)
-                                print("✅ DEBUG: تم حفظ الصورة بنجاح!")
-                                return out_path
+                                print("✅ DEBUG: تم جلب الخلفية! جاري دمج التصميم الذهبي...")
+                                
+                                # --- دمج كود تصميم بايثون (Pillow) ---
+                                try:
+                                    base_img = Image.open(io.BytesIO(data)).convert("RGBA")
+                                    width, height = base_img.size
+                                    
+                                    text_layer = Image.new("RGBA", base_img.size, (0,0,0,0))
+                                    draw = ImageDraw.Draw(text_layer)
+                                    
+                                    text_main = "FREE IPTV WORLD"
+                                    # إذا كان هناك كلمة مفتاحية يكتبها، وإلا يكتب الجملة العامة
+                                    text_sub = f"VIP {keyword.upper()} EDITION" if keyword else "VIP SPORTS & MOVIES"
+                                    
+                                    try:
+                                        font_main = ImageFont.truetype("font.ttf", 90)
+                                        font_sub = ImageFont.truetype("font.ttf", 45)
+                                    except:
+                                        font_main = ImageFont.load_default()
+                                        font_sub = font_main
+                                        
+                                    center_x = width // 2
+                                    center_y_main = height // 2 - 20
+                                    center_y_sub = height // 2 + 80
+                                    
+                                    glow_color = (255, 215, 0, 40)
+                                    for offset in range(1, 15, 2):
+                                        off = offset // 2
+                                        draw.text((center_x + off, center_y_main + off), text_main, font=font_main, fill=glow_color, anchor="mm")
+                                        draw.text((center_x - off, center_y_main - off), text_main, font=font_main, fill=glow_color, anchor="mm")
+                                        
+                                    draw.text((center_x + 8, center_y_main + 8), text_main, font=font_main, fill=(0, 0, 0, 200), anchor="mm")
+                                    
+                                    rich_gold = (212, 175, 55, 255)
+                                    draw.text((center_x, center_y_main), text_main, font=font_main, fill=rich_gold, anchor="mm")
+                                    draw.text((center_x, center_y_main - 2), text_main, font=font_main, fill=(255, 255, 255, 180), anchor="mm")
+                                    draw.text((center_x, center_y_main), text_main, font=font_main, fill=(rich_gold[0], rich_gold[1], rich_gold[2], 150), anchor="mm")
+
+                                    draw.text((center_x + 3, center_y_sub + 3), text_sub, font=font_sub, fill=(0, 0, 0, 150), anchor="mm")
+                                    draw.text((center_x, center_y_sub), text_sub, font=font_sub, fill=(230, 230, 230, 200), anchor="mm")
+                                    
+                                    final_img = Image.alpha_composite(base_img, text_layer)
+                                    final_img.convert("RGB").save(out_path, "JPEG")
+                                    print("✅ DEBUG: تم حفظ الصورة النهائية بنجاح!")
+                                    return out_path
+                                except Exception as img_err:
+                                    print(f"⚠️ DEBUG: فشل في دمج النص، سيتم حفظ الصورة فارغة: {img_err}")
+                                    with open(out_path, "wb") as f: f.write(data)
+                                    return out_path
                             else:
                                 print("⚠️ DEBUG: الصورة المستلمة صغيرة جدا (تالفة).")
                         else:
                             text_resp = await resp.text()
-                            print(f"⚠️ DEBUG: خطأ من Cloudflare: {text_resp}")
+                            print(f"⚠️ DEBUG: خطأ من Cloudflare: {resp.status} - {text_resp}")
             except Exception as ex:
                 print(f"⚠️ DEBUG: فشل الاتصال في المحاولة {attempt} بسبب: {ex}")
             await asyncio.sleep(2)
