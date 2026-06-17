@@ -1,0 +1,43 @@
+﻿#EXTM3U
+#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD
+https://files.catbox.moe/npglfu.mp4
+#EXTINF:-1 group-title="SPORT 🏆",Setanta Sports 1 Georgia | 🌟 FREE IPTV WORLD 🌟
+http://158.101.222.193:88/georgia_play.php?id=setanta_georgia
+#EXTINF:-1 group-title="SPORT 🏆",Setanta Sports 2 Georgia | 🌟 FREE IPTV WORLD 🌟
+http://158.101.222.193:88/georgia_play.php?id=setanta_sports_plus_georgia
+#EXTINF:-1 group-title="SPORT 🏆",Setanta Sports 3 Georgia | 🌟 FREE IPTV WORLD 🌟
+http://158.101.222.193:88/georgia_play.php?id=setanta_sports_3
+#EXTINF:-1 group-title="SPORT 🏆",Setanta Sports 1 HD | 🌟 FREE IPTV WORLD 🌟
+https://stream8.cinerama.uz/1263/tracks-v1a1/mono.m3u8
+#EXTINF:-1 group-title="SPORT 🏆",Setanta Sports 2 HD | 🌟 FREE IPTV WORLD 🌟
+https://stream8.cinerama.uz/1264/tracks-v1a1/mono.m3u8
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 1 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10006
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 2 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10007
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 3 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10008
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 4 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10009
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 5 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10010
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 6 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10011
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 7 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10012
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 8 HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10013
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 1 Premium HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10001
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 2 Premium HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10004
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 3 Premium HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10005
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 4 Premium HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10016
+#EXTINF:-1 group-title="SPORT 🏆",Arena Sport 5 Premium HD | 🌟 FREE IPTV WORLD 🌟
+http://178.253.194.79:10017
+#EXTINF:-1 group-title="ОБИТ",Setanta Sport Eurasia | 🌟 FREE IPTV WORLD 🌟
+http://37.46.49.14:18010/play/a03f/index.m3u8
+#EXTINF:-1 group-title="ОБИТ",Setanta Sport Eurasia Plus | 🌟 FREE IPTV WORLD 🌟
+http://37.46.49.14:18010/play/a03g/index.m3u8
