@@ -22,7 +22,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install Packages
-        run: pip install python-telegram-bot requests aiohttp pyrogram tgcrypto nest_asyncio
+        run: pip install python-telegram-bot requests aiohttp pyrogram tgcrypto nest_asyncio Pillow
+
+      - name: Download Professional Font
+        run: wget -q -O font.ttf https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Black.ttf
 
       - name: Run Heavy Script
         env:
