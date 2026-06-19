@@ -60,6 +60,41 @@ ADULT_WORDS = ["xxx", "porn", "adult", "adults", "sex", "18+", "+18", "erotic", 
 ADULT_REGEX = re.compile(r'(?i)(?:' + '|'.join(map(re.escape, ADULT_WORDS)) + r')')
 GROUP_TITLE_REGEX = re.compile(r'group-title="([^"]*)"')
 
+# ============== نظام البحث الذكي (Smart Search Regex) ==============
+# هادا هو العقل المدبر الجديد اللي يخلي البوت يفهم الاختصارات
+SMART_ALIASES_REGEX = {
+    "arab": re.compile(r'(?i)(\barab|\barabe|\barabic|\bar\b|\bmena\b|\barb\b|\|ar\||\[ar\]|-ar-)'),
+    "ar": re.compile(r'(?i)(\barab|\barabe|\barabic|\bar\b|\bmena\b|\barb\b|\|ar\||\[ar\]|-ar-)'),
+    "bein": re.compile(r'(?i)(bein|be\s*in|be-in)'),
+    "bein sport": re.compile(r'(?i)(bein\s*sports?|be\s*in\s*sports?)'),
+    "fr": re.compile(r'(?i)(\bfr\b|\bfrance|\bfrench|\|fr\||\[fr\]|-fr-)'),
+    "france": re.compile(r'(?i)(\bfr\b|\bfrance|\bfrench|\|fr\||\[fr\]|-fr-)'),
+    "uk": re.compile(r'(?i)(\buk\b|\benglish|\beng\b|\|uk\||\[uk\]|-uk-)'),
+    "en": re.compile(r'(?i)(\buk\b|\benglish|\beng\b|\ben\b|\|en\||\[en\]|-en-)')
+}
+
+def is_smart_match(keyword, g_name, extinf):
+    kw = keyword.lower().strip()
+    text_to_search = f"{g_name} {extinf}".lower()
+    
+    # 1. إذا كانت الكلمة موجودة حرفياً
+    if kw in text_to_search:
+        return True
+        
+    # 2. إذا كانت الكلمة من الاختصارات الذكية (مثلا ar او bein)
+    if kw in SMART_ALIASES_REGEX:
+        if SMART_ALIASES_REGEX[kw].search(text_to_search):
+            return True
+            
+    # 3. إذا كتب المستخدم كلمتين متباعدتين (مثلا: bein 4k)
+    parts = kw.split()
+    if len(parts) > 1 and all(p in text_to_search for p in parts):
+        return True
+        
+    return False
+
+# ===================================================================
+
 WARNING_TEXT = """<blockquote>⚠️ <b>ATTENTION / انتباه:</b>
 Links are valid for <b>10 HOURS</b> from publishing, then they will be deleted automatically. Download them NOW!
 مدة الروابط 10 ساعات فقط من وقت النشر ثم سيتم حذفها. يرجى التحميل أو النسخ الآن!</blockquote>\n\n"""
@@ -155,12 +190,11 @@ async def generate_ai_poster(title_text, server_count, keyword="", live=0, vod=0
                                     text_layer = Image.new("RGBA", base_img.size, (0,0,0,0))
                                     draw = ImageDraw.Draw(text_layer)
                                     
-                                    # إعداد الخطوط بأحجام مختلفة
                                     try:
-                                        font_huge = ImageFont.truetype("font.ttf", 100) # للباقة (كبير جدا)
-                                        font_large = ImageFont.truetype("font.ttf", 50) # لاسم القناة
-                                        font_medium = ImageFont.truetype("font.ttf", 40) # للتصنيفات
-                                        font_small = ImageFont.truetype("font.ttf", 32) # للاحصائيات والجودة
+                                        font_huge = ImageFont.truetype("font.ttf", 100)
+                                        font_large = ImageFont.truetype("font.ttf", 50)
+                                        font_medium = ImageFont.truetype("font.ttf", 40)
+                                        font_small = ImageFont.truetype("font.ttf", 32)
                                     except:
                                         font_huge = font_large = font_medium = font_small = ImageFont.load_default()
                                         
@@ -171,12 +205,10 @@ async def generate_ai_poster(title_text, server_count, keyword="", live=0, vod=0
                                     y_stats = height // 2 + 150
                                     y_quality = height // 2 + 210
 
-                                    # 1. اسم القناة (صغير ولون فاتح)
                                     text_channel = "FREE IPTV WORLD"
                                     draw.text((center_x + 2, y_channel + 2), text_channel, font=font_large, fill=(0, 0, 0, 200), anchor="mm")
                                     draw.text((center_x, y_channel), text_channel, font=font_large, fill=(220, 220, 220, 255), anchor="mm")
 
-                                    # 2. اسم الباقة (ضخم ومضيء بالذهبي)
                                     text_package = f"{keyword.upper()} EDITION" if keyword else "VIP SPORTS & MOVIES"
                                     glow_color = (255, 215, 0, 40)
                                     for offset in range(1, 15, 2):
@@ -187,12 +219,10 @@ async def generate_ai_poster(title_text, server_count, keyword="", live=0, vod=0
                                     draw.text((center_x, y_package), text_package, font=font_huge, fill=(212, 175, 55, 255), anchor="mm")
                                     draw.text((center_x, y_package - 2), text_package, font=font_huge, fill=(255, 255, 255, 180), anchor="mm")
 
-                                    # 3. التصنيفات بالإنجليزية
                                     text_cats = "Live Channels  •  Movies  •  TV Series"
                                     draw.text((center_x + 2, y_cats + 2), text_cats, font=font_medium, fill=(0, 0, 0, 200), anchor="mm")
                                     draw.text((center_x, y_cats), text_cats, font=font_medium, fill=(255, 255, 255, 255), anchor="mm")
 
-                                    # 4. العداد الدقيق للأرقام المحسوبة
                                     if live > 0 or vod > 0 or series > 0:
                                         text_stats = f"Live: {live:,}  |  Movies: {vod:,}  |  Series: {series:,}"
                                     else:
@@ -200,7 +230,6 @@ async def generate_ai_poster(title_text, server_count, keyword="", live=0, vod=0
                                     draw.text((center_x + 2, y_stats + 2), text_stats, font=font_small, fill=(0, 0, 0, 200), anchor="mm")
                                     draw.text((center_x, y_stats), text_stats, font=font_small, fill=(255, 215, 0, 255), anchor="mm")
 
-                                    # 5. الجودة المتاحة
                                     text_quality = "QUALITY:  SD  •  HD  •  FHD  •  4K  •  8K"
                                     draw.text((center_x + 2, y_quality + 2), text_quality, font=font_small, fill=(0, 0, 0, 200), anchor="mm")
                                     draw.text((center_x, y_quality), text_quality, font=font_small, fill=(180, 180, 180, 255), anchor="mm")
@@ -329,8 +358,6 @@ async def upload_to_cloud_sem(filename, selected_api="all"):
     async with UPLOAD_SEM:
         return await upload_to_cloud(filename, selected_api)
 
-
-# --- الدالة الذكية لحساب وتصنيف القنوات والأفلام ---
 def analyze_file(filepath):
     groups = defaultdict(list)
     seen_urls_hashes = set()
@@ -357,7 +384,6 @@ def analyze_file(filepath):
                             seen_urls_hashes.add(url_hash)
                             groups[group].append((current_extinf, url, False))
                             
-                            # حساب دقيق للأقسام
                             g_lower = group.lower()
                             if 'vod' in g_lower or 'movie' in g_lower or 'film' in g_lower or 'افلام' in g_lower or 'أفلام' in g_lower:
                                 vod += 1
@@ -471,7 +497,6 @@ async def extract_urls_from_chat(app, chat_id_pyro, limit=HISTORY_LIMIT):
         pass
     return urls
 
-
 # ================== 1. دالة الصيد التلقائي والموازي (TURBO) ==================
 async def run_hunter_action(bot, chat_id, message_id, args):
     global DIALOG_SEM, FETCH_SEM
@@ -480,7 +505,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
         keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
 
-        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد المباشر بالتوربو الفائق...**", edit_state, stop_button(), force=True)
+        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد المباشر بالتوربو الفائق (البحث الذكي)...**", edit_state, stop_button(), force=True)
 
         app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
         await app.start()
@@ -530,13 +555,16 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                         if not (res and res.get("success")):
                             return
                         groups = res["groups"]
+                        
+                        # --- تطبيق فلتر البحث الذكي ---
                         if keyword:
                             filtered = defaultdict(list)
                             for g_name, entries in groups.items():
                                 for extinf, curl, _ in entries:
-                                    if keyword in g_name.lower() or keyword in extinf.lower():
+                                    if is_smart_match(keyword, g_name, extinf):
                                         filtered[g_name].append((extinf, curl, False))
                             groups = filtered
+                            
                         if not groups:
                             return
 
@@ -598,7 +626,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
         target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
         keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
 
-        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد النصي بالتوربو الموازي...**", edit_state, stop_button(), force=True)
+        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد النصي بالتوربو الموازي (البحث الذكي)...**", edit_state, stop_button(), force=True)
 
         app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
         await app.start()
@@ -646,13 +674,16 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
                         if not (res and res.get("success")):
                             return
                         groups = res["groups"]
+                        
+                        # --- تطبيق فلتر البحث الذكي ---
                         if keyword:
                             filtered = defaultdict(list)
                             for g_name, entries in groups.items():
                                 for extinf, curl, _ in entries:
-                                    if keyword in g_name.lower() or keyword in extinf.lower():
+                                    if is_smart_match(keyword, g_name, extinf):
                                         filtered[g_name].append((extinf, curl, False))
                             groups = filtered
+                            
                         if not groups:
                             return
 
@@ -686,7 +717,6 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
         try:
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
         except: pass
-
 
 # ================== 3. دالة السحب السريع (scrape) — TURBO ==================
 async def run_scrape_action(bot, chat_id, message_id, args):
@@ -734,7 +764,6 @@ async def run_scrape_action(bot, chat_id, message_id, args):
         try:
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
         except: pass
-
 
 # ================== المحرك السحابي الأساسي المتحكم ==================
 async def main():
