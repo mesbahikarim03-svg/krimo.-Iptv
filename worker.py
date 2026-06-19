@@ -773,4 +773,46 @@ async def main():
 
     bot = Bot(token=TOKEN)
     payload = json.loads(os.environ.get("PAYLOAD", "{}"))
-    action = payload.get("action
+    action = payload.get("action")
+    chat_id = payload.get("chat_id")
+    message_id = payload.get("message_id")
+    if not chat_id or not action: return
+
+    try:
+        if action == "hunt":
+            await run_hunter_action(bot, chat_id, message_id, payload.get("args", []))
+        elif action == "hunttxt":
+            await run_hunttxt_action(bot, chat_id, message_id, payload.get("args", []))
+        elif action == "scrape":
+            await run_scrape_action(bot, chat_id, message_id, payload.get("args", []))
+        elif action == "process_file":
+            await safe_edit(bot, chat_id, message_id, "⚙️ **المصنع يقوم بتنظيف وتفريغ الملف بالفورمات الأصلي الشرعي...** ⏳", {"time": 0}, stop_button(), force=True)
+            tg_file = await bot.get_file(payload.get("file_id"))
+            filepath = "temp_dl.m3u"
+            await tg_file.download_to_drive(filepath)
+
+            groups, total, adult, live, vod, series = await analyze_async(filepath)
+            os.remove(filepath)
+
+            out_file = "clean_original.m3u"
+            write_m3u_and_get_count(groups, out_file)
+            final_file = compress_if_large(out_file)
+
+            git_link, catbox_link = await asyncio.gather(
+                upload_to_cloud_sem(final_file, "github"),
+                upload_to_cloud_sem(final_file, "catbox_m3u8"),
+            )
+
+            safe_delete(out_file)
+            if final_file != out_file: safe_delete(final_file)
+
+            msg = f"✅ **اكتمل التنظيف بالفورمات الأصلي!**\n\n📡 إجمالي القنوات: {total:,}\n📺 Live: {live:,} | 🎬 VOD: {vod:,} | 🍿 Series: {series:,}\n🔞 محذوف (إباحي): {adult:,}\n\n🔗 **GitHub:**\n`{git_link}`\n\n🔗 **Catbox:**\n`{catbox_link}`"
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=msg, parse_mode="Markdown")
+
+    except Exception as e:
+        try:
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ داخلي في عمل المصنع: {str(e)}")
+        except: pass
+
+if __name__ == "__main__":
+    asyncio.run(main())
