@@ -60,40 +60,37 @@ ADULT_WORDS = ["xxx", "porn", "adult", "adults", "sex", "18+", "+18", "erotic", 
 ADULT_REGEX = re.compile(r'(?i)(?:' + '|'.join(map(re.escape, ADULT_WORDS)) + r')')
 GROUP_TITLE_REGEX = re.compile(r'group-title="([^"]*)"')
 
-# ============== نظام البحث الذكي (Smart Search Regex) ==============
-# هادا هو العقل المدبر الجديد اللي يخلي البوت يفهم الاختصارات
+
+# ============== نظام البحث الذكي الصارم (Strict Smart Sniper) ==============
+# هادا هو العقل المدبر الجديد: يمنع تداخل الحروف (مثل ar داخل Star)
 SMART_ALIASES_REGEX = {
-    "arab": re.compile(r'(?i)(\barab|\barabe|\barabic|\bar\b|\bmena\b|\barb\b|\|ar\||\[ar\]|-ar-)'),
-    "ar": re.compile(r'(?i)(\barab|\barabe|\barabic|\bar\b|\bmena\b|\barb\b|\|ar\||\[ar\]|-ar-)'),
-    "bein": re.compile(r'(?i)(bein|be\s*in|be-in)'),
-    "bein sport": re.compile(r'(?i)(bein\s*sports?|be\s*in\s*sports?)'),
-    "fr": re.compile(r'(?i)(\bfr\b|\bfrance|\bfrench|\|fr\||\[fr\]|-fr-)'),
-    "france": re.compile(r'(?i)(\bfr\b|\bfrance|\bfrench|\|fr\||\[fr\]|-fr-)'),
-    "uk": re.compile(r'(?i)(\buk\b|\benglish|\beng\b|\|uk\||\[uk\]|-uk-)'),
-    "en": re.compile(r'(?i)(\buk\b|\benglish|\beng\b|\ben\b|\|en\||\[en\]|-en-)')
+    "arab": re.compile(r'(?i)(\barab\w*|\bmena\b|\barb\b|\|ar\||\[ar\]|\bar\b|-ar-|^ar\s)'),
+    "ar": re.compile(r'(?i)(\barab\w*|\bmena\b|\barb\b|\|ar\||\[ar\]|\bar\b|-ar-|^ar\s)'),
+    "bein": re.compile(r'(?i)(\bbein\b|\bbe\s*in\b|\bbe-in\b)'),
+    "bein sport": re.compile(r'(?i)(\bbein\s*sports?\b|\bbe\s*in\s*sports?\b)'),
+    "fr": re.compile(r'(?i)(\bfrance\b|\bfrench\b|\bfr\b|\|fr\||\[fr\]|-fr-)'),
+    "france": re.compile(r'(?i)(\bfrance\b|\bfrench\b|\bfr\b|\|fr\||\[fr\]|-fr-)'),
+    "uk": re.compile(r'(?i)(\benglish\b|\beng\b|\buk\b|\|uk\||\[uk\]|-uk-)'),
+    "en": re.compile(r'(?i)(\benglish\b|\beng\b|\ben\b|\|en\||\[en\]|-en-)')
 }
 
 def is_smart_match(keyword, g_name, extinf):
     kw = keyword.lower().strip()
-    text_to_search = f"{g_name} {extinf}".lower()
+    text_to_search = f" {g_name} {extinf} ".lower()
     
-    # 1. إذا كانت الكلمة موجودة حرفياً
-    if kw in text_to_search:
-        return True
-        
-    # 2. إذا كانت الكلمة من الاختصارات الذكية (مثلا ar او bein)
+    # 1. الفلتر الذكي الصارم: إذا الكلمة معرفة عندنا، نعتمد على Regex المضمون 100%
     if kw in SMART_ALIASES_REGEX:
-        if SMART_ALIASES_REGEX[kw].search(text_to_search):
-            return True
-            
-    # 3. إذا كتب المستخدم كلمتين متباعدتين (مثلا: bein 4k)
-    parts = kw.split()
-    if len(parts) > 1 and all(p in text_to_search for p in parts):
-        return True
+        return bool(SMART_ALIASES_REGEX[kw].search(text_to_search))
         
-    return False
+    # 2. إذا كانت كلمة قصيرة جداً (حرفين) غير معرفة في القاموس، نطلب أن تكون مستقلة
+    if len(kw) <= 2:
+        return bool(re.search(r'\b' + re.escape(kw) + r'\b', text_to_search))
+        
+    # 3. الكلمات العادية: نطلب توفر كل الأجزاء
+    parts = kw.split()
+    return all(p in text_to_search for p in parts)
+# ============================================================================
 
-# ===================================================================
 
 WARNING_TEXT = """<blockquote>⚠️ <b>ATTENTION / انتباه:</b>
 Links are valid for <b>10 HOURS</b> from publishing, then they will be deleted automatically. Download them NOW!
@@ -505,7 +502,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
         target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
         keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
 
-        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد المباشر بالتوربو الفائق (البحث الذكي)...**", edit_state, stop_button(), force=True)
+        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد المباشر بالتوربو الفائق (البحث الصارم)...**", edit_state, stop_button(), force=True)
 
         app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
         await app.start()
@@ -526,7 +523,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                 if any(kw in chat_name.lower() for kw in TARGET_KEYWORDS):
                     target_chats.append((chat.id, chat_name))
 
-            await safe_edit(bot, chat_id, message_id, f"🎯 **تم اكتشاف {len(target_chats)} قناة هدف. بدء المعالجة المتوازية...**", edit_state, stop_button(), force=True)
+            await safe_edit(bot, chat_id, message_id, f"🎯 **تم اكتشاف {len(target_chats)} قناة هدف. بدء المعالجة...**", edit_state, stop_button(), force=True)
 
             async def process_one_chat(chat_id_pyro, chat_name):
                 nonlocal found_count, scanned, collected_links, tested_urls, total_live, total_vod, total_series
@@ -556,7 +553,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
                             return
                         groups = res["groups"]
                         
-                        # --- تطبيق فلتر البحث الذكي ---
+                        # --- تطبيق فلتر البحث الذكي الصارم ---
                         if keyword:
                             filtered = defaultdict(list)
                             for g_name, entries in groups.items():
@@ -612,7 +609,7 @@ async def run_hunter_action(bot, chat_id, message_id, args):
 
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"🏁 **اكتملت العملية بنجاح!** تم النشر بنجاح.")
         else:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة.")
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة للبحث الصارم.")
     except Exception as e:
         try:
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
@@ -626,7 +623,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
         target_count = int(args[-1]) if args[-1].isdigit() else int(args[0])
         keyword = " ".join(args[:-1]).lower() if len(args) > 1 and args[-1].isdigit() else (" ".join(args[1:]).lower() if len(args) > 1 else "")
 
-        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد النصي بالتوربو الموازي (البحث الذكي)...**", edit_state, stop_button(), force=True)
+        await safe_edit(bot, chat_id, message_id, "🚀 **بدأ الصيد النصي بالتوربو الموازي (البحث الصارم)...**", edit_state, stop_button(), force=True)
 
         app = Client("wassim_fast_scraper", api_id=24974564, api_hash="b87511de89b42178862e13e84147952b", session_string=SESSION_STRING)
         await app.start()
@@ -645,7 +642,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
                 if any(kw in chat_name.lower() for kw in TARGET_KEYWORDS):
                     target_chats.append((chat.id, chat_name))
 
-            await safe_edit(bot, chat_id, message_id, f"🎯 **تم اكتشاف {len(target_chats)} قناة. بدء الفحص المتوازي...**", edit_state, stop_button(), force=True)
+            await safe_edit(bot, chat_id, message_id, f"🎯 **تم اكتشاف {len(target_chats)} قناة. بدء الفحص...**", edit_state, stop_button(), force=True)
 
             async def process_one_chat(chat_id_pyro, chat_name):
                 nonlocal found_count, scanned, collected_links_raw, tested_urls
@@ -675,7 +672,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
                             return
                         groups = res["groups"]
                         
-                        # --- تطبيق فلتر البحث الذكي ---
+                        # --- تطبيق فلتر البحث الذكي الصارم ---
                         if keyword:
                             filtered = defaultdict(list)
                             for g_name, entries in groups.items():
@@ -712,7 +709,7 @@ async def run_hunttxt_action(bot, chat_id, message_id, args):
             safe_delete(txt_filename)
             await bot.delete_message(chat_id=chat_id, message_id=message_id)
         else:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج.")
+            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text="❌ لم أجد نتائج مطابقة للبحث الصارم.")
     except Exception as e:
         try:
             await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ: {e}")
@@ -776,46 +773,4 @@ async def main():
 
     bot = Bot(token=TOKEN)
     payload = json.loads(os.environ.get("PAYLOAD", "{}"))
-    action = payload.get("action")
-    chat_id = payload.get("chat_id")
-    message_id = payload.get("message_id")
-    if not chat_id or not action: return
-
-    try:
-        if action == "hunt":
-            await run_hunter_action(bot, chat_id, message_id, payload.get("args", []))
-        elif action == "hunttxt":
-            await run_hunttxt_action(bot, chat_id, message_id, payload.get("args", []))
-        elif action == "scrape":
-            await run_scrape_action(bot, chat_id, message_id, payload.get("args", []))
-        elif action == "process_file":
-            await safe_edit(bot, chat_id, message_id, "⚙️ **المصنع يقوم بتنظيف وتفريغ الملف بالفورمات الأصلي الشرعي...** ⏳", {"time": 0}, stop_button(), force=True)
-            tg_file = await bot.get_file(payload.get("file_id"))
-            filepath = "temp_dl.m3u"
-            await tg_file.download_to_drive(filepath)
-
-            groups, total, adult, live, vod, series = await analyze_async(filepath)
-            os.remove(filepath)
-
-            out_file = "clean_original.m3u"
-            write_m3u_and_get_count(groups, out_file)
-            final_file = compress_if_large(out_file)
-
-            git_link, catbox_link = await asyncio.gather(
-                upload_to_cloud_sem(final_file, "github"),
-                upload_to_cloud_sem(final_file, "catbox_m3u8"),
-            )
-
-            safe_delete(out_file)
-            if final_file != out_file: safe_delete(final_file)
-
-            msg = f"✅ **اكتمل التنظيف بالفورمات الأصلي!**\n\n📡 إجمالي القنوات: {total:,}\n📺 Live: {live:,} | 🎬 VOD: {vod:,} | 🍿 Series: {series:,}\n🔞 محذوف (إباحي): {adult:,}\n\n🔗 **GitHub:**\n`{git_link}`\n\n🔗 **Catbox:**\n`{catbox_link}`"
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=msg, parse_mode="Markdown")
-
-    except Exception as e:
-        try:
-            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=f"❌ خطأ داخلي في عمل المصنع: {str(e)}")
-        except: pass
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    action = payload.get("action
