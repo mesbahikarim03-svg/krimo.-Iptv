@@ -1,0 +1,15 @@
+﻿#EXTM3U
+#EXTINF:-1 tvg-id="Free.IPTV" tvg-name="FREE IPTV WORLD PROMO" tvg-logo="https://files.catbox.moe/goe4nn.jpg" group-title="🌟 FREE IPTV WORLD 🌟",📺 Welcome to FREE IPTV WORLD
+https://files.catbox.moe/npglfu.mp4
+#EXTINF:-1 tvg-id="" tvg-name="beIN MAX 1 4K" tvg-logo="" group-title="AR ✮ BEIN SPORTS FHD",beIN MAX 1 4K | 🌟 FREE IPTV WORLD 🌟
+http://max4kcdn.com:8080/live/9051425339/1800781514/183423.ts
+#EXTINF:-1 tvg-id="" tvg-name="AR : beIN DMAX" tvg-logo="http://live.phenixiptv.com:8080/images/OlKrxfBBdaNWbiLTXpPQXixwS8RIQkdb4v7jKD4Kq1Eh1EPuMtr8C1WQI6aWh8RXvAnenV2uKwXShd5u0HwLofEc9aDt2zqafBumtZqHLvgUASmCdBOy8QZ41K8o6v2_0APpUwuDqF7o3wjFfJQcxZZ9x_wgcz8REIbFPW2m4iw.png" group-title="AR ✮ BEIN ENTERTAIMENT HD/4K",AR : beIN DMAX | 🌟 FREE IPTV WORLD 🌟
+http://max4kcdn.com:8080/live/9051425339/1800781514/181302.ts
+#EXTINF:-1 tvg-id="" tvg-name="beIN MAX 1 FHD" tvg-logo="" group-title="AR ✮ BEIN SPORTS  MAX HD/4K",beIN MAX 1 FHD | 🌟 FREE IPTV WORLD 🌟
+http://max4kcdn.com:8080/live/9051425339/1800781514/183424.ts
+#EXTINF:-1 tvg-id="" tvg-name="beIN MAX 2 HD" tvg-logo="" group-title="AR ✮ BEIN SPORTS  MAX HD/4K",beIN MAX 2 HD | 🌟 FREE IPTV WORLD 🌟
+http://max4kcdn.com:8080/live/9051425339/1800781514/183425.ts
+#EXTINF:-1 tvg-id="" tvg-name="beIN MAX 3 HD" tvg-logo="" group-title="AR ✮ BEIN SPORTS  MAX HD/4K",beIN MAX 3 HD | 🌟 FREE IPTV WORLD 🌟
+http://max4kcdn.com:8080/live/9051425339/1800781514/183426.ts
+#EXTINF:-1 tvg-id="" tvg-name="beIN MAX 4 HD" tvg-logo="" group-title="AR ✮ BEIN SPORTS  MAX HD/4K",beIN MAX 4 HD | 🌟 FREE IPTV WORLD 🌟
+http://max4kcdn.com:8080/live/9051425339/1800781514/183427.ts
